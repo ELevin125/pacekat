@@ -8,7 +8,7 @@ import type { GarminGetter } from '../src/main/sync';
 export { openDbForTest };
 
 /** Minimal valid activity FIT file. */
-export function makeFit(sport: string, opts: { seconds?: number; power?: boolean; vo2?: number } = {}): Uint8Array {
+export function makeFit(sport: string, opts: { seconds?: number; power?: boolean; vo2?: number; laps?: number; hr?: (i: number) => number } = {}): Uint8Array {
   const enc = new Encoder();
   const e = { onMesg: (num: number | undefined, m: Record<string, unknown>) => enc.onMesg(num!, m as Mesg) };
   const t0 = new Date('2026-11-10T05:00:00Z');
@@ -17,8 +17,15 @@ export function makeFit(sport: string, opts: { seconds?: number; power?: boolean
   for (let i = 0; i < n; i++) {
     e.onMesg(Profile.MesgNum.RECORD, {
       timestamp: new Date(t0.getTime() + i * 1000),
-      heartRate: 130 + (i % 10),
+      heartRate: opts.hr ? opts.hr(i) : 130 + (i % 10),
       ...(opts.power ? { power: 200 } : {}),
+    });
+  }
+  for (let l = 0; l < (opts.laps ?? 0); l++) {
+    const len = n / opts.laps!;
+    e.onMesg(Profile.MesgNum.LAP, {
+      timestamp: new Date(t0.getTime() + (l + 1) * len * 1000), startTime: new Date(t0.getTime() + l * len * 1000),
+      totalElapsedTime: len, totalTimerTime: len, totalDistance: 1000, avgHeartRate: 140 + l, avgSpeed: 1000 / len,
     });
   }
   if (opts.vo2) e.onMesg(Profile.MesgNum.MAX_MET_DATA, { updateTime: t0, vo2Max: opts.vo2, sport, subSport: 'generic' });

@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self' ws:; object-src 'none'; base-uri 'none'; form-action 'none'"
+    />
+    <title>Pacekat · Developer</title>
+    <link rel="stylesheet" href="./debug.css" />
+  </head>
+  <body>
+    <header class="top">
+      <h1>Pacekat <span class="muted">· debug views</span></h1>
+      <nav>
+        <button data-tab="readiness" class="tab active">Readiness</button>
+        <button data-tab="plan" class="tab">Plan</button>
+        <button data-tab="activities" class="tab">Activities</button>
+        <button data-tab="garmin" class="tab">Garmin</button>
+        <button data-tab="sync" class="tab">Sync</button>
+        <button data-tab="data" class="tab">Data</button>
+      </nav>
+    </header>
+
+    <main>
+      <section id="tab-readiness" class="panel">
+        <div class="tile hero">
+          <p class="muted" id="today-date"></p>
+          <h2 id="today-verdict" class="verdict">—</h2>
+          <div class="meter" id="today-meter"><span></span><span></span><span></span></div>
+          <p id="today-summary"></p>
+          <ul id="today-factors" class="factors"></ul>
+        </div>
+        <div class="tile">
+          <h2>Engine inputs</h2>
+          <dl id="engine-info" class="kv"></dl>
+          <p class="muted small">Marks: ✓ fine · ! watch · ✕ warning · – no data. Readiness uses last night's data and load through yesterday.</p>
+        </div>
+        <div class="tile wide">
+          <h2>Last 30 days</h2>
+          <div class="scroll"><table id="readiness-table"></table></div>
+        </div>
+      </section>
+
+      <section id="tab-plan" class="panel hidden">
+        <div id="suggestion" class="tile wide suggestion hidden">
+          <h2>Suggestion for today</h2>
+          <p id="suggestion-reason"></p>
+          <ul id="suggestion-changes"></ul>
+          <div class="row">
+            <button id="suggestion-accept">Accept</button>
+            <button id="suggestion-dismiss" class="ghost">Keep my plan</button>
+          </div>
+        </div>
+        <div class="tile wide">
+          <div class="row spread">
+            <div class="row">
+              <button id="week-prev" class="ghost">‹</button>
+              <h2 id="week-title" class="nomargin">Week</h2>
+              <button id="week-next" class="ghost">›</button>
+              <button id="week-today" class="ghost">This week</button>
+            </div>
+            <span id="week-meta" class="muted"></span>
+          </div>
+          <ul id="week-notes" class="notes"></ul>
+          <ul id="week-warnings" class="errors"></ul>
+          <p id="plan-msg" class="msg"></p>
+          <div id="week-grid" class="week-grid"></div>
+        </div>
+        <div class="tile">
+          <h2>Races</h2>
+          <table id="races-table"></table>
+          <form id="race-form" class="race-form">
+            <input id="race-name" placeholder="Race name" />
+            <input id="race-date" type="date" />
+            <select id="race-type"></select>
+            <select id="race-priority">
+              <option value="A">A — build toward it</option>
+              <option value="B">B — mini-taper</option>
+              <option value="C">C — training race</option>
+            </select>
+            <button type="submit">Add race</button>
+          </form>
+          <p id="race-msg" class="msg"></p>
+        </div>
+        <div class="tile">
+          <h2>Why did my plan change?</h2>
+          <ul id="changes-list" class="changes"></ul>
+        </div>
+        <div class="tile wide">
+          <div class="row spread">
+            <h2 class="nomargin">Next 4 weeks</h2>
+            <button id="block-btn" class="ghost">Show preview</button>
+          </div>
+          <div class="scroll"><table id="block-table"></table></div>
+        </div>
+      </section>
+
+      <section id="tab-activities" class="panel hidden">
+        <div class="tile wide">
+          <div class="row spread">
+            <h2>Activities</h2>
+            <span id="rpe-note" class="muted"></span>
+          </div>
+          <p class="muted small">RPE = how hard it felt, 1 (very easy) to 10 (max). It sets load for pool swims and strength, and calibrates the effort-to-load factor.</p>
+          <p id="act-msg" class="msg"></p>
+          <div class="scroll"><table id="activities-table"></table></div>
+        </div>
+      </section>
+
+      <section id="tab-garmin" class="panel hidden">
+        <div class="tile">
+          <h2>Garmin connection</h2>
+          <p id="garmin-status" class="muted">Loading…</p>
+          <ol class="howto">
+            <li>Sign in to Garmin Connect on the web and open
+              <a href="https://connect.garmin.com/app/settings/personalApiToken" target="_blank" rel="noreferrer">Personal API Key</a>.</li>
+            <li>Create Key → accept the terms → choose <b>1 year</b> → copy the key (it starts with <code>GCDC_</code>; it is shown only once).</li>
+            <li>Paste it below.</li>
+          </ol>
+          <form id="key-form" class="row">
+            <input id="key-input" type="password" autocomplete="off" spellcheck="false" placeholder="GCDC_…" />
+            <button type="submit">Save key</button>
+          </form>
+          <div class="row">
+            <button id="test-btn">Test connection</button>
+            <button id="clear-btn" class="ghost">Remove key</button>
+          </div>
+          <p id="garmin-msg" class="msg"></p>
+        </div>
+        <div class="tile">
+          <h2>App</h2>
+          <dl id="app-info" class="kv"></dl>
+          <button id="open-folder" class="ghost">Open data folder</button>
+        </div>
+      </section>
+
+      <section id="tab-sync" class="panel hidden">
+        <div class="tile">
+          <h2>Sync</h2>
+          <div class="row">
+            <button id="sync-btn">Sync now</button>
+            <button id="full-btn" class="ghost">Re-sync last 90 days</button>
+          </div>
+          <div class="progress"><div id="progress-bar"></div></div>
+          <p id="sync-msg" class="msg"></p>
+          <ul id="sync-errors" class="errors"></ul>
+        </div>
+        <div class="tile">
+          <h2>Sync state</h2>
+          <p id="last-sync" class="muted"></p>
+          <table id="state-table"></table>
+        </div>
+      </section>
+
+      <section id="tab-data" class="panel hidden">
+        <div class="tile narrow">
+          <h2>Tables</h2>
+          <ul id="table-list" class="tables"></ul>
+        </div>
+        <div class="tile wide">
+          <div class="row spread">
+            <h2 id="rows-title">Pick a table</h2>
+            <div class="row">
+              <button id="prev-page" class="ghost">‹ Prev</button>
+              <span id="page-info" class="muted"></span>
+              <button id="next-page" class="ghost">Next ›</button>
+            </div>
+          </div>
+          <div class="scroll"><table id="rows-table"></table></div>
+        </div>
+      </section>
+    </main>
+
+    <script type="module" src="./debug.ts"></script>
+  </body>
+</html>

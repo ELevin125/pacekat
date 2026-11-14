@@ -6,6 +6,7 @@ import { registerIpc } from './ipc';
 import { GARMIN_KEY, SecretStore } from './secrets';
 
 let win: BrowserWindow | null = null;
+let debugWin: BrowserWindow | null = null;
 let db: DB | null = null;
 
 // Dev/testing only: isolate the data folder (e.g. for smoke tests against a mock Garmin).
@@ -39,7 +40,7 @@ function createWindow(): BrowserWindow {
     show: false,
     autoHideMenuBar: true,
     webPreferences: {
-      preload: join(__dirname, '../preload/index.cjs'),
+      preload: PRELOAD(),
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: true,
@@ -47,6 +48,15 @@ function createWindow(): BrowserWindow {
   });
   w.once('ready-to-show', () => w.show());
 
+  lockDown(w);
+
+  if (process.env.ELECTRON_RENDERER_URL) void w.loadURL(process.env.ELECTRON_RENDERER_URL);
+  else void w.loadFile(join(__dirname, '../renderer/index.html'));
+  return w;
+}
+
+const PRELOAD = () => join(__dirname, '../preload/index.cjs');
+const lockDown = (w: BrowserWindow) => {
   // No in-app navigation away from our page; external links open in the browser.
   w.webContents.setWindowOpenHandler(({ url }) => {
     if (/^https:\/\//.test(url)) void shell.openExternal(url);
@@ -55,10 +65,26 @@ function createWindow(): BrowserWindow {
   w.webContents.on('will-navigate', (e, url) => {
     if (url !== w.webContents.getURL()) e.preventDefault();
   });
+};
 
-  if (process.env.ELECTRON_RENDERER_URL) void w.loadURL(process.env.ELECTRON_RENDERER_URL);
-  else void w.loadFile(join(__dirname, '../renderer/index.html'));
-  return w;
+/** Raw tables, sync state and engine views from M1–M3 (Settings → Developer). */
+function openDebugWindow(): void {
+  if (debugWin && !debugWin.isDestroyed()) {
+    debugWin.focus();
+    return;
+  }
+  debugWin = new BrowserWindow({
+    width: 1280,
+    height: 820,
+    backgroundColor: '#0B0D10',
+    title: 'Pacekat · Developer',
+    autoHideMenuBar: true,
+    webPreferences: { preload: PRELOAD(), contextIsolation: true, nodeIntegration: false, sandbox: true },
+  });
+  lockDown(debugWin);
+  if (process.env.ELECTRON_RENDERER_URL) void debugWin.loadURL(`${process.env.ELECTRON_RENDERER_URL}/debug.html`);
+  else void debugWin.loadFile(join(__dirname, '../renderer/debug.html'));
+  debugWin.on('closed', () => (debugWin = null));
 }
 
 // Single instance: a second launch focuses the existing window.
@@ -82,7 +108,7 @@ if (!app.requestSingleInstanceLock()) {
     });
     const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'Africa/Johannesburg';
 
-    const ipc = registerIpc({ db, secrets, userData, fitDir: paths.fit, timeZone, getWindow: () => win, log });
+    const ipc = registerIpc({ db, secrets, userData, fitDir: paths.fit, timeZone, getWindow: () => win, log, openDebug: openDebugWindow });
     win = createWindow();
     log(`started; userData=${userData} tz=${timeZone}`);
 

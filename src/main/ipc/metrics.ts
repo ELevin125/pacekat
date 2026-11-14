@@ -13,6 +13,36 @@ export interface MetricsIpcContext {
   afterRecompute?: (today: string) => void;
 }
 
+/** Activities as list items, most recent first. `where` is a trusted SQL fragment over alias `a`. */
+export function listActivities(db: DB, where: string, params: unknown[], limit: number): ActivityItem[] {
+  const lim = Math.min(Math.max(limit, 1), 500);
+  const rows = db
+    .prepare(
+      `SELECT a.*,
+         (SELECT value FROM activity_extras e WHERE e.activity_id = a.id AND e.key = 'needs_rpe') AS needs_rpe,
+         (SELECT value FROM activity_extras e WHERE e.activity_id = a.id AND e.key = 'load_reasons') AS load_reasons
+       FROM activities a WHERE ${where} ORDER BY a.start_utc DESC, a.id DESC LIMIT ?`,
+    )
+    .all(...params, lim) as Array<Record<string, unknown>>;
+  return rows.map((r) => ({
+    id: Number(r.id),
+    date: String(r.local_date),
+    name: (r.name as string | null) ?? null,
+    sport: String(r.sport),
+    subSport: (r.sub_sport as string | null) ?? null,
+    durationMin: r.duration_s == null ? null : Math.round(Number(r.duration_s) / 6) / 10,
+    distanceKm: r.distance_m == null ? null : Math.round(Number(r.distance_m) / 10) / 100,
+    avgHr: (r.avg_hr as number | null) ?? null,
+    load: (r.load as number | null) ?? null,
+    loadMethod: (r.load_method as string | null) ?? null,
+    loadReasons: r.load_reasons ? (JSON.parse(String(r.load_reasons)) as string[]) : [],
+    needsRpe: r.needs_rpe === '1',
+    rpe: (r.rpe as number | null) ?? null,
+    isCommute: r.is_commute === 1,
+    commuteSource: (r.commute_source as ActivityItem['commuteSource']) ?? null,
+  }));
+}
+
 /** Registers metrics + activity handlers. Returns the recompute function for sync/startup. */
 export function registerMetricsIpc(ctx: MetricsIpcContext): () => MetricsSummary {
   const { db } = ctx;
@@ -60,34 +90,7 @@ export function registerMetricsIpc(ctx: MetricsIpcContext): () => MetricsSummary
     }));
   });
 
-  ipcMain.handle(IPC.activitiesList, (_e, limit: unknown): ActivityItem[] => {
-    const lim = Math.min(Math.max(Number(limit) || 50, 1), 500);
-    const rows = db
-      .prepare(
-        `SELECT a.*,
-           (SELECT value FROM activity_extras e WHERE e.activity_id = a.id AND e.key = 'needs_rpe') AS needs_rpe,
-           (SELECT value FROM activity_extras e WHERE e.activity_id = a.id AND e.key = 'load_reasons') AS load_reasons
-         FROM activities a ORDER BY a.start_utc DESC, a.id DESC LIMIT ?`,
-      )
-      .all(lim) as Array<Record<string, unknown>>;
-    return rows.map((r) => ({
-      id: Number(r.id),
-      date: String(r.local_date),
-      name: (r.name as string | null) ?? null,
-      sport: String(r.sport),
-      subSport: (r.sub_sport as string | null) ?? null,
-      durationMin: r.duration_s == null ? null : Math.round(Number(r.duration_s) / 6) / 10,
-      distanceKm: r.distance_m == null ? null : Math.round(Number(r.distance_m) / 10) / 100,
-      avgHr: (r.avg_hr as number | null) ?? null,
-      load: (r.load as number | null) ?? null,
-      loadMethod: (r.load_method as string | null) ?? null,
-      loadReasons: r.load_reasons ? (JSON.parse(String(r.load_reasons)) as string[]) : [],
-      needsRpe: r.needs_rpe === '1',
-      rpe: (r.rpe as number | null) ?? null,
-      isCommute: r.is_commute === 1,
-      commuteSource: (r.commute_source as ActivityItem['commuteSource']) ?? null,
-    }));
-  });
+  ipcMain.handle(IPC.activitiesList, (_e, limit: unknown): ActivityItem[] => listActivities(db, '1 = 1', [], Number(limit) || 50));
 
   ipcMain.handle(IPC.activitiesSetRpe, (_e, id: unknown, rpe: unknown): Result => {
     const aid = Number(id);

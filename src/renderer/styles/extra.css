@@ -1,0 +1,118 @@
+/* Additions for the real app: states and components the mockup didn't need. Tokens only. */
+
+/* The mockup toggled pages with .active; the app renders one page at a time. */
+.page { display: flex; }
+.page.scroll { overflow-y: auto; }
+.week-page { overflow-y: auto; }
+.week-page .week-cols { flex: 1 0 auto; }
+
+.fg { color: var(--text); font-weight: 500; }
+.err-text { color: var(--warn); }
+.small-note { font-size: 12px; margin-top: 6px; display: block; }
+:focus-visible { outline: 2px solid var(--text-2); outline-offset: 2px; }
+button:disabled { opacity: 0.5; cursor: default; }
+a { color: var(--text); }
+code { background: var(--tile-2); padding: 1px 5px; border-radius: 4px; font-size: 0.92em; }
+
+/* rail sync dot */
+.sync-dot.running { background: var(--text); animation: pulse 1.2s ease-in-out infinite; }
+.sync-dot.error { background: var(--warn); }
+@keyframes pulse { 50% { opacity: 0.3; } }
+@media (prefers-reduced-motion: reduce) {
+  .sync-dot.running { animation: none; }
+  .drawer, .scrim { transition: none; }
+}
+
+/* page head extras */
+.page-head .right .link { font-size: 13px; }
+.week-today { font-size: 13px; }
+.week-notes { display: flex; flex-direction: column; gap: 4px; font-size: 13px; }
+.warn-inline b { color: var(--warn); margin-right: 4px; }
+
+/* Today */
+.race-name { margin-top: 8px; font-size: 16px; }
+.race-when { margin-top: 6px; font-size: 13px; }
+.race-none { color: var(--text-2); margin: 12px 0 14px; }
+.act-title { font-size: 20px; margin-top: 8px; }
+.strip-head { display: flex; align-items: baseline; gap: 12px; }
+.strip-head .muted { font-size: 13px; }
+.strip-open { margin-left: auto; font-size: 13px; }
+.chip.done-chip { margin-left: auto; color: var(--text); }
+.t-activity:focus-visible { border-color: var(--text-2); }
+
+/* popovers / menus */
+.pop-anchor { display: contents; }
+.race-row .pop-anchor, .why.pop-anchor { display: block; position: relative; }
+.menu.left { left: 0; right: auto; }
+.why .menu { top: 22px; width: 260px; }
+.menu-title { font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-3); padding: 6px 10px 4px; }
+.menu-scroll { max-height: 320px; overflow-y: auto; }
+.why-pop { padding: 4px 8px; font-size: 13px; display: flex; flex-direction: column; gap: 6px; }
+.why-pop p { margin: 0; }
+.kebab.static { position: static; }
+.race-row .menu { top: 30px; right: 0; }
+
+/* Week cards */
+.wcol-cards { display: flex; flex-direction: column; gap: 8px; }
+.card .row1 .key-tag { margin-left: 2px; }
+.key-tag.soft { border-style: dashed; }
+.link-state { background: none; border: 0; padding: 0; text-align: left; color: inherit; cursor: pointer; }
+.link-state:hover { text-decoration: underline; text-underline-offset: 3px; }
+.sport-ico.tiny { width: 14px; height: 14px; color: var(--text-3); }
+
+/* toast */
+.toast { position: fixed; left: 50%; bottom: 18px; transform: translateX(-50%); z-index: 50; background: var(--tile-2); border: 1px solid var(--border);
+  border-radius: 12px; padding: 10px 16px; font-size: 13px; box-shadow: var(--shadow); max-width: min(640px, 90vw); }
+.toast.bad { border-color: var(--warn); }
+
+/* charts */
+.ch-txt { fill: var(--text-3); font-size: 11px; }
+.ch-txt.small { font-size: 10px; }
+.chart-empty { position: absolute; inset: 0; display: grid; place-items: center; color: var(--text-3); font-size: 12px; border: 1px dashed var(--border); border-radius: 10px; }
+.focus-empty { color: var(--text-2); font-size: 13px; display: block !important; }
+.focus-note { margin-top: auto; padding-top: 14px; }
+.ghost-link { margin-top: 8px; }
+.vo2-delta { font-size: 13px; margin-top: 6px; }
+.tg-focus { display: flex; flex-direction: column; }
+
+/* first run */
+.first-run { flex: 1; display: grid; place-items: center; }
+.first-run .tile { width: min(620px, 100%); padding: 28px 30px; }
+.fr-title { font-size: 26px; font-weight: 400; letter-spacing: -0.02em; margin: 10px 0 12px; }
+.fr-steps { color: var(--text-2); padding-left: 20px; line-height: 1.7; margin: 0 0 16px; }
+.fr-form { display: flex; gap: 8px; margin: 12px 0 6px; }
+.fr-form input, .race-form input, .race-form select {
+  flex: 1; min-width: 0; background: var(--bg); color: var(--text); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 8px 12px; font: inherit;
+}
+.fr-note { font-size: 12px; margin-top: 10px; }
+.progress.wide { width: 100%; margin: 14px 0 6px; }
+.progress span { transition: width 0.2s; }
+
+/* settings */
+.subnav-item { display: flex; flex-direction: column; }
+.sec-head { display: flex; align-items: flex-start; gap: 12px; }
+.sec-head > div { flex: 1; }
+.race-form { display: flex; flex-wrap: wrap; gap: 8px; margin: 4px 0 14px; }
+.race-form input[type='date'] { flex: 0 0 160px; }
+.race-form select { flex: 0 1 200px; }
+.race-head { border-top: 0; padding-top: 0; color: var(--text-3); font-size: 12px; }
+.race-empty { margin: 4px 0 10px; font-size: 13px; }
+.tl-label { margin-bottom: 8px; }
+.role { cursor: default; flex-direction: column; align-items: stretch; gap: 2px; }
+.role::after { display: none; }
+.role select { background: transparent; border: 0; color: var(--text); font: inherit; font-size: 12px; padding: 0; cursor: pointer; }
+.role select option { background: var(--tile-2); color: var(--text); }
+.role .choices { display: flex; gap: 8px; font-size: 11px; color: var(--text-2); }
+.role .choices label { display: inline-flex; align-items: center; gap: 3px; }
+.add-slot { cursor: pointer; }
+.save-row { margin-top: 12px; align-items: center; }
+.trow2.first { border-top: 0; }
+.ztable .zin { width: 56px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font: inherit; padding: 2px 6px; font-variant-numeric: tabular-nums; }
+.zbar-col { width: 45%; }
+.status-bad { display: inline-flex; align-items: center; gap: 6px; color: var(--warn); }
+.status-bad::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--warn); }
+.data-kv { margin-top: 16px; }
+.btn.small { padding: 5px 10px; }
+.field input:disabled { opacity: 0.6; }
+.table-scroll { overflow-x: auto; }
+.sbody { padding-bottom: 40vh; }

@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Pacekat M4 mockup</title>
+<title>Pacekat app mockup</title>
 <!--
-  Static M4 mockup: Today, Week and the activity drawer.
+  Static app mockup: Today, Week, activity drawer (M4) + Trends, Races & Settings (M5).
   Data is made up but shaped like src/shared/api.ts (ReadinessDay, PlanWeekView, ActivityItem).
   Scenario: Saturday 14 Nov 2026, build phase, HRV dipped -> "Keep it easy" + a downgrade suggestion.
   Tokens are the ones from docs/ui.md and are meant to be lifted into the real renderer as-is.
@@ -294,6 +294,130 @@ th:first-child, td:first-child { text-align: left; }
 /* placeholder pages */
 .placeholder { flex: 1; display: grid; place-items: center; color: var(--text-3); border: 1px dashed var(--border); border-radius: var(--radius); }
 
+
+/* ---------- M5: shared ---------- */
+.page.scroll { overflow-y: auto; }
+.seg { display: inline-flex; background: var(--tile); border: 1px solid var(--border); border-radius: 10px; padding: 3px; gap: 2px; }
+.seg button { border: 0; background: none; padding: 5px 12px; border-radius: 7px; color: var(--text-2); font-size: 13px; }
+.seg button.on { background: var(--tile-2); color: var(--text); box-shadow: inset 0 0 0 1px var(--border); }
+.fchip { display: inline-flex; align-items: center; gap: 6px; padding: 5px 11px; border-radius: 999px; font-size: 13px;
+  border: 1px solid var(--border); background: none; color: var(--text-3); }
+.fchip .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--c); opacity: .35; }
+.fchip.on { color: var(--text); border-color: var(--text-3); }
+.fchip.on .dot { opacity: 1; }
+.filters { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.filters .sep { width: 1px; height: 22px; background: var(--border); margin: 0 6px; }
+
+/* ---------- TRENDS ---------- */
+.tgrid { display: grid; gap: var(--gap); grid-template-columns: repeat(12, minmax(0, 1fr)); grid-auto-rows: minmax(250px, auto); }
+.tg-load { grid-column: 1 / 9; grid-row: span 2; }
+.tg-focus { grid-column: 9 / 13; grid-row: span 2; }
+.tg-4 { grid-column: span 4; }
+.tile-head { display: flex; align-items: baseline; gap: 10px; }
+.tile-head .hint { margin-left: auto; font-size: 12px; color: var(--text-3); }
+.tile.chart { display: flex; flex-direction: column; }
+.chart-box { position: relative; flex: 1; min-height: 90px; }
+.chart-box svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.chart-sub { font-size: 12px; color: var(--text-2); margin: 10px 0 2px; display: flex; justify-content: space-between; }
+.chart-sub b { color: var(--text); font-weight: 500; }
+.legend-row { display: flex; gap: 14px; font-size: 12px; color: var(--text-2); margin-top: 8px; flex-wrap: wrap; }
+.legend-row span { display: inline-flex; align-items: center; gap: 6px; }
+.legend-row i { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+.legend-row i.ln { height: 2px; width: 14px; border-radius: 1px; }
+.legend-row i.band { background: var(--tile-2); box-shadow: inset 0 0 0 1px var(--border); }
+.focus-list { list-style: none; padding: 0; margin: 12px 0 0; display: flex; flex-direction: column; gap: 10px; }
+.focus-list li { background: var(--tile-2); border-radius: 12px; padding: 12px 14px; display: grid; grid-template-columns: 22px 1fr; gap: 10px; }
+.focus-list .t { font-weight: 500; margin-bottom: 3px; }
+.focus-list .d { color: var(--text-2); font-size: 13px; }
+.focus-list .act { margin-top: 8px; }
+.stat-big { font-size: 64px; font-weight: 200; letter-spacing: -0.03em; line-height: 1; margin-top: 14px; }
+.stat-big small { font-size: 16px; color: var(--text-2); font-weight: 400; letter-spacing: 0; margin-left: 6px; }
+.off-tile { display: flex; flex-direction: column; }
+.off-tile .ghost { flex: 1; margin-top: 12px; border: 1px dashed var(--border); border-radius: 12px; display: grid; place-items: center; text-align: center; color: var(--text-3); padding: 16px; font-size: 13px; }
+.tip-box { position: fixed; z-index: 40; pointer-events: none; background: var(--tile-2); border: 1px solid var(--border); border-radius: 10px;
+  padding: 8px 10px; font-size: 12px; box-shadow: 0 8px 24px rgba(0,0,0,.45); display: none; min-width: 120px; }
+.tip-box .h { color: var(--text-2); margin-bottom: 4px; }
+.tip-box .r { display: flex; align-items: center; gap: 6px; justify-content: space-between; }
+.tip-box .r span:first-child { display: inline-flex; align-items: center; gap: 6px; color: var(--text-2); }
+.tip-box i { width: 8px; height: 8px; border-radius: 2px; display: inline-block; }
+
+/* ---------- SETTINGS ---------- */
+.settings { flex: 1; display: grid; grid-template-columns: 200px minmax(0, 1fr); gap: 24px; min-height: 0; }
+.subnav { display: flex; flex-direction: column; gap: 2px; }
+.subnav button { text-align: left; border: 0; background: none; padding: 8px 12px; border-radius: 10px; color: var(--text-2); }
+.subnav button:hover { color: var(--text); background: var(--tile); }
+.subnav button.on { color: var(--text); background: var(--tile-2); }
+.subnav .grp { font-size: 11px; color: var(--text-3); text-transform: uppercase; letter-spacing: .06em; padding: 14px 12px 4px; }
+.sbody { overflow-y: auto; padding-right: 8px; display: flex; flex-direction: column; gap: var(--gap); max-width: 980px; scroll-behavior: smooth; }
+.sbody > section { scroll-margin-top: 4px; flex: none; overflow: visible; }
+.sbody h2 { font-size: 17px; font-weight: 600; margin: 0 0 4px; }
+.sbody .lead { color: var(--text-2); font-size: 13px; margin: 0 0 14px; }
+.race-row { display: grid; grid-template-columns: 34px 1fr 130px 120px 90px 28px; align-items: center; gap: 12px; padding: 10px 0; border-top: 1px solid var(--border); }
+.prio { width: 26px; height: 26px; border-radius: 8px; display: grid; place-items: center; font-weight: 600; font-size: 13px; }
+.prio.A { background: var(--text); color: var(--bg); }
+.prio.B { border: 1.5px solid var(--text); }
+.prio.C { border: 1.5px dashed var(--text-3); color: var(--text-2); }
+.timeline { margin-top: 18px; }
+.tl-bar { display: flex; gap: 2px; height: 28px; position: relative; }
+.tl-bar span { border-radius: 6px; background: var(--tile-2); font-size: 11px; color: var(--text-2); display: flex; align-items: center; padding: 0 8px; overflow: hidden; white-space: nowrap; }
+.tl-bar span.cur { background: var(--text-3); color: var(--text); }
+.tl-bar span.taper { background: color-mix(in srgb, var(--text) 18%, var(--tile-2)); }
+.tl-marks { position: relative; height: 34px; }
+.tl-marks .m { position: absolute; top: 4px; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; font-size: 11px; color: var(--text-2); white-space: nowrap; }
+.tl-marks .m::before { content: ""; width: 2px; height: 10px; background: var(--text); margin-bottom: 3px; }
+.tl-marks .m.now::before { background: var(--warn); }
+.tl-axis { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-3); margin-top: 6px; }
+.tmpl { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 8px; }
+.tmpl .col { background: var(--tile-2); border-radius: 12px; padding: 10px; display: flex; flex-direction: column; gap: 6px; min-height: 120px; }
+.tmpl .col .dn { font-size: 12px; color: var(--text-2); margin-bottom: 2px; }
+.role { border-radius: 8px; padding: 6px 8px; font-size: 12px; background: color-mix(in srgb, var(--c) 16%, transparent); display: flex; justify-content: space-between; gap: 6px; cursor: pointer; }
+.role::after { content: "▾"; color: var(--text-3); }
+.role small { display: block; color: var(--text-2); font-size: 11px; }
+.add-slot { margin-top: auto; border: 1px dashed var(--border); border-radius: 8px; background: none; color: var(--text-3); font-size: 12px; padding: 5px; }
+.fields { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.field { background: var(--tile-2); border-radius: 12px; padding: 10px 12px; }
+.field label { display: block; font-size: 12px; color: var(--text-2); }
+.field .in { display: flex; align-items: baseline; gap: 6px; margin-top: 4px; }
+.field input { width: 72px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font: inherit; font-size: 18px; padding: 4px 8px; font-variant-numeric: tabular-nums; }
+.field .src { font-size: 11px; color: var(--text-3); margin-top: 4px; }
+.field.dim { opacity: .5; }
+.ztable { margin-top: 14px; }
+.ztable td, .ztable th { text-align: left; }
+.ztable .zbar { height: 6px; border-radius: 3px; background: var(--text-3); }
+.trow2 { display: flex; align-items: center; gap: 14px; padding: 12px 0; border-top: 1px solid var(--border); }
+.trow2 .txt { flex: 1; }
+.trow2 .txt .muted { font-size: 13px; }
+.sw.on { background: var(--text); }
+.sw.on::after { left: 17px; background: var(--bg); }
+.sw { flex: none; cursor: pointer; }
+.nudge { margin-top: 6px; background: var(--tile-2); border: 1px solid var(--text-3); border-radius: 10px; padding: 8px 10px; font-size: 13px; display: flex; gap: 10px; align-items: center; }
+.nudge span { flex: 1; }
+.kv { display: grid; grid-template-columns: 160px 1fr; gap: 8px 16px; font-size: 13px; margin-bottom: 14px; }
+.kv dt { color: var(--text-2); }
+.kv dd { margin: 0; }
+.btn-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.status-on { display: inline-flex; align-items: center; gap: 6px; }
+.status-on::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--text); }
+.howto { margin-top: 14px; font-size: 13px; color: var(--text-2); }
+.howto summary { cursor: pointer; color: var(--text); }
+.howto ol { margin: 8px 0 0; padding-left: 20px; line-height: 1.7; }
+.progress { height: 6px; border-radius: 3px; background: var(--border); margin-top: 10px; overflow: hidden; }
+.progress span { display: block; height: 100%; background: var(--text); }
+.disclaimer { font-size: 12px; color: var(--text-3); margin-top: 10px; }
+
+@media (max-width: 1440px), (max-height: 860px) {
+  .tgrid { grid-auto-rows: minmax(220px, auto); }
+  .tg-load { grid-column: 1 / 13; grid-row: span 1; min-height: 340px; }
+  .tg-focus { grid-column: 1 / 13; grid-row: span 1; }
+  .focus-list { flex-direction: row; }
+  .focus-list li { flex: 1; }
+  .tg-4 { grid-column: span 6; }
+  .settings { grid-template-columns: 170px minmax(0, 1fr); gap: 16px; }
+  .fields { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .race-row { grid-template-columns: 34px 1fr 110px 90px 28px; }
+  .race-row .rtype { display: none; }
+}
+
 /* mockup-only switcher */
 .mock-note { position: fixed; right: 14px; bottom: 12px; font-size: 11px; color: var(--text-3); z-index: 30; }
 </style>
@@ -318,7 +442,7 @@ th:first-child, td:first-child { text-align: left; }
     <div class="logo">P</div>
     <button class="rail-btn active" data-page="today"><svg><use href="#i-today"/></svg><span class="tip">Today</span></button>
     <button class="rail-btn" data-page="week"><svg><use href="#i-week"/></svg><span class="tip">Week</span></button>
-    <button class="rail-btn" data-page="trends"><svg><use href="#i-trends"/></svg><span class="tip">Trends (M5)</span></button>
+    <button class="rail-btn" data-page="trends"><svg><use href="#i-trends"/></svg><span class="tip">Trends</span></button>
     <button class="rail-btn" data-page="settings"><svg><use href="#i-settings"/></svg><span class="tip">Races &amp; Settings</span></button>
     <div class="rail-spacer"></div>
     <span class="sync-dot" title="Synced 07:12"></span>
@@ -540,8 +664,214 @@ th:first-child, td:first-child { text-align: left; }
     </div>
   </main>
 
-  <main class="page" id="page-trends"><div class="page-head"><h1>Trends</h1><span class="sub">M5</span></div><div class="placeholder">Trends page comes in M5.</div></main>
-  <main class="page" id="page-settings"><div class="page-head"><h1>Races &amp; Settings</h1><span class="sub">M4: Garmin key, races list. Rest in M5.</span></div><div class="placeholder">Races list, Garmin key, data folder. Debug views live behind a "Developer" section.</div></main>
+  <!-- ===================== TRENDS (M5) ===================== -->
+  <main class="page scroll" id="page-trends">
+    <div class="page-head">
+      <h1>Trends</h1>
+      <span class="sub" id="tr-range-label">Last 12 weeks · 24 Aug – 15 Nov</span>
+      <div class="right filters">
+        <div class="seg" id="tr-range">
+          <button data-w="4">4 wk</button><button data-w="8">8 wk</button><button data-w="12" class="on">12 wk</button>
+        </div>
+        <span class="sep"></span>
+        <button class="fchip on s-swim" data-sport="swim"><span class="dot"></span>Swim</button>
+        <button class="fchip on s-bike" data-sport="bike"><span class="dot"></span>Bike</button>
+        <button class="fchip on s-run" data-sport="run"><span class="dot"></span>Run</button>
+        <button class="fchip on s-strength" data-sport="strength"><span class="dot"></span>Strength</button>
+      </div>
+    </div>
+
+    <div class="tgrid">
+      <section class="tile chart tg-load">
+        <div class="tile-head"><span class="label">Weekly load by sport</span><span class="hint">TRIMP · current week so far</span></div>
+        <div class="chart-box" id="ch-load" style="flex:2.2"></div>
+        <div class="legend-row">
+          <span><i style="background:var(--sport-swim)"></i>Swim</span>
+          <span><i style="background:var(--sport-bike)"></i>Bike (incl. commutes)</span>
+          <span><i style="background:var(--sport-run)"></i>Run</span>
+          <span><i style="background:var(--sport-strength)"></i>Strength</span>
+        </div>
+        <div class="chart-sub"><span>Load ratio (acute : chronic)</span><span>now <b>1.12</b> · safe range 0.8–1.3</span></div>
+        <div class="chart-box" id="ch-acwr" style="flex:1"></div>
+      </section>
+
+      <section class="tile tg-focus">
+        <div class="label">Focus areas</div>
+        <ul class="focus-list">
+          <li><span class="mark watch">!</span><div><div class="t">Swim is your smallest slice</div><div class="d">14 % of training time. For an Olympic tri, 20 %+ is a better balance. Adding 10 min to Saturday's swim gets you there.</div><div class="act"><button class="link">Edit my week</button></div></div></li>
+          <li><span class="mark ok">✓</span><div><div class="t">Easy runs are getting faster</div><div class="d">Pace at 140 bpm improved by 27 s/km since August. The aerobic base is working.</div></div></li>
+          <li><span class="mark ok">✓</span><div><div class="t">Cadence is fine</div><div class="d">Easy-run cadence averages 164 spm, above the 160 spm guide.</div></div></li>
+        </ul>
+        <div class="disclaimer" style="margin-top:auto;padding-top:14px">Hints are simple rules, not diagnoses. They appear and disappear as your data changes.</div>
+      </section>
+
+      <section class="tile chart tg-4">
+        <div class="tile-head"><span class="label">Recovery</span><span class="hint">weekly average</span></div>
+        <div class="chart-sub"><span>HRV (ms) vs your normal range</span><span>this week <b>45</b></span></div>
+        <div class="chart-box" id="ch-hrv"></div>
+        <div class="chart-sub"><span>Resting HR (bpm)</span><span>this week <b>52</b></span></div>
+        <div class="chart-box" id="ch-rhr"></div>
+      </section>
+
+      <section class="tile chart tg-4 s-swim">
+        <div class="tile-head"><svg class="sport-ico"><use href="#i-swim"/></svg><span class="label">Swim · pool</span><span class="hint">faster ↑</span></div>
+        <div class="chart-sub"><span>Avg pace /100 m</span><span>last <b>1:57</b></span></div>
+        <div class="chart-box" id="ch-swpace"></div>
+        <div class="chart-sub"><span>SWOLF (lower is better)</span><span>last <b>38</b></span></div>
+        <div class="chart-box" id="ch-swolf"></div>
+      </section>
+
+      <section class="tile chart tg-4 s-run">
+        <div class="tile-head"><svg class="sport-ico"><use href="#i-run"/></svg><span class="label">Run · easy runs</span><span class="hint">faster ↑</span></div>
+        <div class="chart-sub"><span>Aerobic efficiency: pace at 140 bpm</span><span>last <b>5:38 /km</b></span></div>
+        <div class="chart-box" id="ch-eff"></div>
+        <div class="chart-sub"><span>Cadence (spm) · 160 guide</span><span>last <b>164</b></span></div>
+        <div class="chart-box" id="ch-cad"></div>
+      </section>
+
+      <section class="tile chart tg-4 s-bike">
+        <div class="tile-head"><svg class="sport-ico"><use href="#i-bike"/></svg><span class="label">Bike · commutes</span><span class="hint">commutes only, so rides are comparable</span></div>
+        <div class="chart-sub"><span>Avg speed (km/h)</span><span>last <b>25.6</b></span></div>
+        <div class="chart-box" id="ch-cspd"></div>
+        <div class="chart-sub"><span>Avg HR (bpm)</span><span>last <b>130</b></span></div>
+        <div class="chart-box" id="ch-chr"></div>
+      </section>
+
+      <section class="tile tg-4 off-tile">
+        <div class="tile-head"><svg class="sport-ico s-run" style="color:var(--sport-run)"><use href="#i-run"/></svg><span class="label">Running dynamics</span></div>
+        <div class="ghost">Ground contact time, vertical oscillation and stride length.<br />Needs an HRM 600 or another running-dynamics sensor.<br /><button class="link" style="margin-top:8px" onclick="go('settings');jump('hardware')">Turn on in Hardware</button></div>
+      </section>
+
+      <section class="tile chart tg-4">
+        <div class="tile-head"><span class="label">VO2 max · run</span><span class="hint">from Garmin</span></div>
+        <div class="stat-big">53<small>ml/kg/min</small></div>
+        <div class="muted" style="font-size:13px;margin-top:6px">+3 since August</div>
+        <div class="chart-box" id="ch-vo2" style="margin-top:12px"></div>
+      </section>
+    </div>
+  </main>
+
+  <!-- ===================== RACES & SETTINGS (M5) ===================== -->
+  <main class="page" id="page-settings">
+    <div class="page-head"><h1>Races &amp; Settings</h1></div>
+    <div class="settings">
+      <nav class="subnav" id="subnav">
+        <div class="grp">Training</div>
+        <button data-sec="races" class="on">Races</button>
+        <button data-sec="week">My week</button>
+        <button data-sec="body">Body &amp; zones</button>
+        <button data-sec="hardware">Hardware</button>
+        <div class="grp">App</div>
+        <button data-sec="garmin">Garmin</button>
+        <button data-sec="ai">AI summaries</button>
+        <button data-sec="data">Data &amp; about</button>
+        <button data-sec="dev">Developer</button>
+      </nav>
+
+      <div class="sbody" id="sbody">
+        <section class="tile" id="sec-races">
+          <div style="display:flex;align-items:flex-start;gap:12px"><div style="flex:1"><h2>Races</h2><p class="lead">A races shape the plan. B races get a short taper. C races are just training days with a number on.</p></div><button class="btn primary">Add race</button></div>
+          <div class="race-row" style="border-top:0;padding-top:0;color:var(--text-3);font-size:12px"><span></span><span>Name</span><span class="rtype">Type</span><span>Date</span><span>In</span><span></span></div>
+          <div class="race-row"><span class="prio C">C</span><span>parkrun PB attempt</span><span class="rtype muted">5 km</span><span>Sun 6 Dec</span><span class="muted">22 days</span><button class="kebab" style="position:static"><svg width="16" height="16"><use href="#i-more"/></svg></button></div>
+          <div class="race-row"><span class="prio A">A</span><span>Olympic triathlon</span><span class="rtype muted">Olympic tri</span><span>Sun 27 Dec</span><span class="muted">41 days</span><button class="kebab" style="position:static"><svg width="16" height="16"><use href="#i-more"/></svg></button></div>
+          <div class="race-row"><span class="prio B">B</span><span>Summer 10 km</span><span class="rtype muted">10 km</span><span>Sun 31 Jan</span><span class="muted">76 days</span><button class="kebab" style="position:static"><svg width="16" height="16"><use href="#i-more"/></svg></button></div>
+          <div class="timeline">
+            <div class="label" style="margin-bottom:8px">Resulting phases</div>
+            <div class="tl-bar">
+              <span style="flex:48">Base</span><span class="cur" style="flex:49">Build · now</span><span style="flex:14">Peak</span><span class="taper" style="flex:7">Taper</span><span style="flex:7">Rec.</span><span style="flex:21">Build</span><span class="taper" style="flex:7">Taper</span><span style="flex:28">Maintain</span>
+            </div>
+            <div class="tl-marks">
+              <span class="m now" style="left:40.9%">Today</span>
+              <span class="m" style="left:53%">C · parkrun</span>
+              <span class="m" style="left:64.6%">A · Olympic tri</span>
+              <span class="m" style="left:84%">B · 10 km</span>
+            </div>
+            <div class="tl-axis"><span>Sep</span><span>Oct</span><span>Nov</span><span>Dec</span><span>Jan</span><span>Feb</span></div>
+          </div>
+        </section>
+
+        <section class="tile" id="sec-week">
+          <h2>My week</h2>
+          <p class="lead">Your usual week. The engine picks the actual session for each slot from the phase you're in. Commutes are fixed and never moved.</p>
+          <div class="tmpl">
+            <div class="col"><span class="dn">Mon</span><span class="role s-commute"><span>Commute<small>fixed</small></span></span><button class="add-slot">+ add</button></div>
+            <div class="col"><span class="dn">Tue</span><span class="role s-strength"><span>Upper body</span></span><span class="role s-swim"><span>Swim · quality</span></span><button class="add-slot">+ add</button></div>
+            <div class="col"><span class="dn">Wed</span><span class="role s-commute"><span>Commute<small>fixed</small></span></span><button class="add-slot">+ add</button></div>
+            <div class="col"><span class="dn">Thu</span><span class="role s-strength"><span>Lower body</span></span><button class="add-slot">+ add</button></div>
+            <div class="col"><span class="dn">Fri</span><span class="role s-other"><span>Recovery<small>easy swim or mobility</small></span></span><button class="add-slot">+ add</button></div>
+            <div class="col"><span class="dn">Sat</span><span class="role s-run"><span>Main<small>MTB or parkrun</small></span></span><span class="role s-swim"><span>Swim · endurance</span></span><button class="add-slot">+ add</button></div>
+            <div class="col"><span class="dn">Sun</span><span class="role s-run"><span>Run<small>long / easy</small></span></span><button class="add-slot">+ add</button></div>
+          </div>
+          <div class="trow2" style="margin-top:12px"><div class="txt">Open-water access<div class="muted">Plans open-water swims in the build and peak phases.</div></div><span class="sw" onclick="this.classList.toggle('on')"></span></div>
+        </section>
+
+        <section class="tile" id="sec-body">
+          <h2>Body &amp; zones</h2>
+          <p class="lead">Used for load and targets. Anything you type here wins over Garmin's value.</p>
+          <div class="fields">
+            <div class="field"><label>Max HR</label><div class="in"><input value="188" /><span class="muted">bpm</span></div><div class="src">Garmin-detected · 2 Nov</div></div>
+            <div class="field"><label>Resting HR</label><div class="in"><input value="52" disabled /><span class="muted">bpm</span></div><div class="src">Automatic · 7-day average</div></div>
+            <div class="field"><label>Run threshold pace</label><div class="in"><input value="4:35" /><span class="muted">/km</span></div><div class="src">You set this</div></div>
+            <div class="field"><label>Swim CSS</label><div class="in"><input value="1:48" /><span class="muted">/100 m</span></div><div class="src">From a CSS test · 20 Oct</div></div>
+            <div class="field dim"><label>FTP</label><div class="in"><input value="—" disabled /><span class="muted">W</span></div><div class="src">Appears when Bike power is on</div></div>
+          </div>
+          <table class="ztable">
+            <tr><th>Zone</th><th>From</th><th>To</th><th style="width:45%"></th><th>Source</th></tr>
+            <tr><td>Z1</td><td>94</td><td>113</td><td><div class="zbar" style="width:20%;opacity:.35"></div></td><td class="muted">Garmin</td></tr>
+            <tr><td>Z2</td><td>113</td><td>132</td><td><div class="zbar" style="width:40%;opacity:.5"></div></td><td class="muted">Garmin</td></tr>
+            <tr><td>Z3</td><td>132</td><td>151</td><td><div class="zbar" style="width:60%;opacity:.65"></div></td><td class="muted">Garmin</td></tr>
+            <tr><td>Z4</td><td>151</td><td>169</td><td><div class="zbar" style="width:80%;opacity:.8"></div></td><td class="muted">Garmin</td></tr>
+            <tr><td>Z5</td><td>169</td><td>188</td><td><div class="zbar" style="width:100%"></div></td><td class="muted">Garmin</td></tr>
+          </table>
+        </section>
+
+        <section class="tile" id="sec-hardware">
+          <h2>Hardware</h2>
+          <p class="lead">Tell the app which sensors you use, so it knows which numbers to trust.</p>
+          <div class="trow2" style="border-top:0"><div class="txt">Chest strap<div class="muted">Trust heart rate for intervals and strength.</div></div><span class="sw on" onclick="this.classList.toggle('on')"></span></div>
+          <div class="trow2"><div class="txt">Swim HR storage (HRM 600 / HRM-Pro)<div class="muted">Use heart rate for swim load instead of RPE.</div>
+            <div class="nudge"><span>We're seeing heart rate on your last 4 swims. Turn this on?</span><button class="btn primary" style="padding:5px 10px">Turn on</button><button class="link faint">Not now</button></div></div><span class="sw" onclick="this.classList.toggle('on')"></span></div>
+          <div class="trow2"><div class="txt">Running dynamics<div class="muted">Show ground contact time, vertical oscillation and stride length trends.</div></div><span class="sw" onclick="this.classList.toggle('on')"></span></div>
+          <div class="trow2"><div class="txt">Bike power<div class="muted">Power targets, NP / IF / TSS and the FTP setting.</div></div><span class="sw" onclick="this.classList.toggle('on')"></span></div>
+        </section>
+
+        <section class="tile" id="sec-garmin">
+          <h2>Garmin</h2>
+          <dl class="kv">
+            <dt>Status</dt><dd><span class="status-on">Connected</span></dd>
+            <dt>Key</dt><dd>GCDC_••••••••3f9a</dd>
+            <dt>Last sync</dt><dd>Today 07:12 · 2 new activities</dd>
+            <dt>History</dt><dd>Since 16 Aug (90 days)</dd>
+          </dl>
+          <div class="btn-row"><button class="btn">Sync now</button><button class="btn">Test connection</button><button class="btn">Replace key</button><button class="btn">Re-sync last 90 days</button></div>
+          <details class="howto"><summary>How to create a Garmin key</summary>
+            <ol><li>Sign in to Garmin Connect on the web.</li><li>Open the developer page for personal data access and create a key.</li><li>Copy the key starting with <code>GCDC_</code> and paste it here.</li></ol>
+          </details>
+        </section>
+
+        <section class="tile" id="sec-ai">
+          <h2>AI summaries</h2>
+          <p class="lead">A small model runs on this computer and turns the engine's numbers into short notes. Nothing leaves your machine. When it's off, you get the template summaries, which work fine.</p>
+          <div class="trow2" style="border-top:0"><div class="txt">Use AI summaries<div class="muted">Off · using templates</div></div><span class="sw" onclick="this.classList.toggle('on')"></span></div>
+          <div class="trow2"><div class="txt">Model<div class="muted">Not downloaded · 4.1 GB · one-time download</div><div class="progress" style="width:320px"><span style="width:0%"></span></div></div><button class="btn">Download model</button></div>
+        </section>
+
+        <section class="tile" id="sec-data">
+          <h2>Data &amp; about</h2>
+          <p class="lead">Everything lives in one folder on this computer.</p>
+          <div class="btn-row"><button class="btn">Open data folder</button><button class="btn">Export backup (.zip)</button></div>
+          <dl class="kv" style="margin-top:16px"><dt>Version</dt><dd>0.5.0</dd><dt>Data folder</dt><dd class="muted">C:\Users\…\AppData\Roaming\Pacekat</dd></dl>
+          <div class="disclaimer">Pacekat gives training suggestions, not medical advice. If something hurts or feels wrong, rest and talk to a professional.</div>
+        </section>
+
+        <section class="tile" id="sec-dev">
+          <h2>Developer</h2>
+          <p class="lead">Raw tables, sync state and engine debug views from M1–M2.</p>
+          <div class="btn-row"><button class="btn">Open debug views</button></div>
+        </section>
+      </div>
+    </div>
+  </main>
 </div>
 
 <!-- ===================== DRAWER ===================== -->
@@ -597,6 +927,7 @@ const app = document.getElementById('app');
 function go(page) {
   document.querySelectorAll('.rail-btn').forEach(b => b.classList.toggle('active', b.dataset.page === page));
   document.querySelectorAll('.page').forEach(p => p.classList.toggle('active', p.id === 'page-' + page));
+  if (page === 'trends') renderTrends();
 }
 document.querySelectorAll('.rail-btn').forEach(b => b.addEventListener('click', () => go(b.dataset.page)));
 function openDrawer() { document.body.classList.add('drawer-open'); }
@@ -623,6 +954,181 @@ for (let i = 1; i <= 10; i++) {
   b.onclick = () => { rpe.querySelectorAll('button').forEach(x => x.classList.remove('on')); b.classList.add('on'); };
   rpe.appendChild(b);
 }
+
+/* ===================== M5: Trends charts (mockup) =====================
+   Plain SVG so the mockup has no dependencies. The real app uses uPlot with the same rules:
+   one y-axis per chart, 2px lines, 2px gaps in stacks, 4px rounded bar tops, recessive grid, hover tooltip. */
+const css = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const NS = 'http://www.w3.org/2000/svg';
+const W = {
+  labels: ['24 Aug','31 Aug','7 Sep','14 Sep','21 Sep','28 Sep','5 Oct','12 Oct','19 Oct','26 Oct','2 Nov','9 Nov'],
+  load: {
+    swim:     [70, 85, 60, 90, 95, 40, 100, 110, 105, 60, 115, 92],
+    bike:     [180, 170, 190, 175, 160, 120, 185, 170, 190, 110, 180, 81],
+    run:      [90, 110, 95, 120, 130, 70, 140, 150, 135, 80, 160, 0],
+    strength: [40, 45, 40, 50, 45, 30, 50, 45, 50, 25, 48, 48],
+  },
+  acwr: [0.95, 1.02, 0.98, 1.08, 1.1, 0.82, 1.12, 1.18, 1.09, 0.86, 1.15, 1.12],
+  hrv:  [44, 45, 46, 46, 47, 44, 48, 49, 48, 50, 49, 45],
+  rhr:  [54, 54, 53, 53, 52, 54, 52, 51, 51, 52, 51, 52],
+  swpace: [125, 124, 123, 122, 122, 124, 120, 119, 119, 121, 118, 117],
+  swolf: [42, 41, 41, 40, 40, 41, 39, 39, 38, 39, 38, 38],
+  eff: [365, 362, 358, 355, 352, 355, 348, 345, 344, 346, 340, 338],
+  cad: [158, 159, 160, 160, 161, 160, 162, 163, 162, 163, 164, 164],
+  cspd: [24.1, 24.3, 24.0, 24.6, 24.8, 24.2, 25.0, 25.1, 25.3, 24.9, 25.4, 25.6],
+  chr: [138, 137, 137, 135, 134, 136, 133, 132, 131, 133, 130, 130],
+  vo2: [50, 50, 51, 51, 51, 51, 52, 52, 52, 52, 53, 53],
+};
+const SPORTS = ['swim', 'bike', 'run', 'strength'];
+const SPORT_NAME = { swim: 'Swim', bike: 'Bike', run: 'Run', strength: 'Strength' };
+const trState = { weeks: 12, sports: new Set(SPORTS) };
+const mmss = (s) => `${Math.floor(s / 60)}:${String(Math.round(s % 60)).padStart(2, '0')}`;
+
+function el(tag, attrs, parent) {
+  const n = document.createElementNS(NS, tag);
+  for (const k in attrs) n.setAttribute(k, attrs[k]);
+  if (parent) parent.appendChild(n);
+  return n;
+}
+const tip = document.createElement('div'); tip.className = 'tip-box'; document.body.appendChild(tip);
+function showTip(e, head, rows) {
+  tip.innerHTML = `<div class="h">${head}</div>` + rows.map(r => `<div class="r"><span>${r.c ? `<i style="background:${r.c}"></i>` : ''}${r.k}</span><b style="font-weight:500">${r.v}</b></div>`).join('');
+  tip.style.display = 'block';
+  const x = Math.min(e.clientX + 14, innerWidth - tip.offsetWidth - 8);
+  tip.style.left = x + 'px'; tip.style.top = (e.clientY + 14) + 'px';
+}
+const hideTip = () => { tip.style.display = 'none'; };
+
+function frame(box, padL = 40) {
+  box.innerHTML = '';
+  const w = box.clientWidth, h = box.clientHeight;
+  const svg = el('svg', { viewBox: `0 0 ${w} ${h}` }, box);
+  return { svg, w, h, l: padL, r: 14, t: 6, b: 18 };
+}
+function xPos(f, n, i) { const iw = f.w - f.l - f.r; return f.l + (n === 1 ? iw / 2 : (iw * i) / (n - 1)); }
+function yScale(f, lo, hi, invert) { const ih = f.h - f.t - f.b; return (v) => invert ? f.t + ih * (v - lo) / (hi - lo) : f.t + ih * (1 - (v - lo) / (hi - lo)); }
+function gridY(f, y, ticks, fmt) {
+  for (const v of ticks) {
+    el('line', { x1: f.l, x2: f.w - f.r, y1: y(v), y2: y(v), stroke: css('--border'), 'stroke-width': 1 }, f.svg);
+    const t = el('text', { x: f.l - 8, y: y(v) + 4, 'text-anchor': 'end', fill: css('--text-3'), 'font-size': 11 }, f.svg); t.textContent = fmt(v);
+  }
+}
+function xLabels(f, labels, xs) {
+  const idx = labels.length <= 4 ? labels.map((_, i) => i) : [0, Math.floor((labels.length - 1) / 2), labels.length - 1];
+  for (const i of idx) {
+    const anchor = i === 0 ? 'start' : i === labels.length - 1 ? 'end' : 'middle';
+    const t = el('text', { x: xs(i), y: f.h - 2, 'text-anchor': anchor, fill: css('--text-3'), 'font-size': 11 }, f.svg); t.textContent = labels[i];
+  }
+}
+
+/* Line chart: one series, optional band / reference line, optional inverted axis (pace: faster up). */
+function lineChart(id, values, o) {
+  const box = document.getElementById(id); if (!box || !box.clientWidth) return;
+  const f = frame(box, o.padL ?? 40);
+  const n = values.length, labels = W.labels.slice(-n);
+  const all = [...values, ...(o.band || []), ...(o.ref != null ? [o.ref] : [])];
+  let lo = Math.min(...all), hi = Math.max(...all); const pad = (hi - lo) * 0.15 || 1; lo -= pad; hi += pad;
+  const y = yScale(f, lo, hi, o.invert), xs = (i) => xPos(f, n, i);
+  const ticks = [lo + pad, (lo + hi) / 2, hi - pad];
+  gridY(f, y, ticks, o.fmt);
+  if (o.band) {
+    const [a, b] = o.band; const y1 = Math.min(y(a), y(b)), y2 = Math.max(y(a), y(b));
+    el('rect', { x: f.l, y: y1, width: f.w - f.l - f.r, height: y2 - y1, fill: css('--tile-2') }, f.svg);
+    const t = el('text', { x: f.w - f.r - 4, y: y1 + 12, 'text-anchor': 'end', fill: css('--text-3'), 'font-size': 10 }, f.svg); t.textContent = o.bandLabel || '';
+  }
+  if (o.ref != null) el('line', { x1: f.l, x2: f.w - f.r, y1: y(o.ref), y2: y(o.ref), stroke: css('--text-3'), 'stroke-dasharray': '4 4', 'stroke-width': 1 }, f.svg);
+  xLabels(f, labels, xs);
+  const color = o.color || css('--text');
+  el('path', { d: values.map((v, i) => `${i ? 'L' : 'M'}${xs(i)},${y(v)}`).join(''), fill: 'none', stroke: color, 'stroke-width': 2, 'stroke-linejoin': 'round', 'stroke-linecap': 'round' }, f.svg);
+  el('circle', { cx: xs(n - 1), cy: y(values[n - 1]), r: 4, fill: color, stroke: css('--tile'), 'stroke-width': 2 }, f.svg);
+  // hover
+  const cross = el('line', { y1: f.t, y2: f.h - f.b, stroke: css('--text-3'), 'stroke-width': 1, opacity: 0 }, f.svg);
+  const dot = el('circle', { r: 4, fill: color, stroke: css('--tile'), 'stroke-width': 2, opacity: 0 }, f.svg);
+  const hit = el('rect', { x: f.l, y: 0, width: f.w - f.l - f.r, height: f.h, fill: 'transparent' }, f.svg);
+  hit.addEventListener('mousemove', (e) => {
+    const r = box.getBoundingClientRect(); const px = e.clientX - r.left;
+    const i = Math.max(0, Math.min(n - 1, Math.round((px - f.l) / ((f.w - f.l - f.r) / (n - 1 || 1)))));
+    cross.setAttribute('x1', xs(i)); cross.setAttribute('x2', xs(i)); cross.setAttribute('opacity', 1);
+    dot.setAttribute('cx', xs(i)); dot.setAttribute('cy', y(values[i])); dot.setAttribute('opacity', 1);
+    showTip(e, `Week of ${labels[i]}`, [{ k: o.name, v: o.fmt(values[i]), c: color }]);
+  });
+  hit.addEventListener('mouseleave', () => { cross.setAttribute('opacity', 0); dot.setAttribute('opacity', 0); hideTip(); });
+}
+
+/* Stacked weekly load bars. Colour follows the sport, never its position. */
+function loadChart() {
+  const box = document.getElementById('ch-load'); if (!box || !box.clientWidth) return;
+  const f = frame(box, 40); const n = trState.weeks; const labels = W.labels.slice(-n);
+  const sports = SPORTS.filter(s => trState.sports.has(s));
+  const tot = labels.map((_, i) => sports.reduce((a, s) => a + W.load[s].slice(-n)[i], 0));
+  const hi = Math.max(100, ...tot) * 1.1;
+  const y = yScale(f, 0, hi, false);
+  const step = (f.w - f.l - f.r) / n, bw = Math.min(46, step * 0.62);
+  const xs = (i) => f.l + step * (i + 0.5);
+  gridY(f, y, [0, Math.round(hi / 2 / 50) * 50, Math.round(hi * 0.9 / 50) * 50], (v) => v);
+  xLabels(f, labels, xs);
+  labels.forEach((lab, i) => {
+    let base = 0; const segs = sports.map(s => ({ s, v: W.load[s].slice(-n)[i] })).filter(d => d.v > 0);
+    const g = el('g', {}, f.svg);
+    segs.forEach((d, j) => {
+      const y0 = y(base), y1 = y(base + d.v); base += d.v;
+      const top = j === segs.length - 1, gap = j === 0 ? 0 : 2, x = xs(i) - bw / 2, h = Math.max(0, y0 - y1 - gap);
+      const r = top ? Math.min(4, h) : 0;
+      const yTop = y1, yBot = y1 + h;
+      el('path', { d: `M${x},${yBot} V${yTop + r} Q${x},${yTop} ${x + r},${yTop} H${x + bw - r} Q${x + bw},${yTop} ${x + bw},${yTop + r} V${yBot} Z`, fill: css('--sport-' + d.s) }, g);
+    });
+    if (i === n - 1) { const t = el('text', { x: xs(i), y: y(tot[i]) - 6, 'text-anchor': 'middle', fill: css('--text-2'), 'font-size': 11 }, f.svg); t.textContent = 'so far'; }
+    const hit = el('rect', { x: xs(i) - step / 2, y: f.t, width: step, height: f.h - f.t - f.b, fill: 'transparent' }, f.svg);
+    hit.addEventListener('mousemove', (e) => showTip(e, `Week of ${lab}${i === n - 1 ? ' (so far)' : ''}`,
+      [...sports.map(s => ({ k: SPORT_NAME[s], v: W.load[s].slice(-n)[i], c: css('--sport-' + s) })), { k: 'Total', v: tot[i] }]));
+    hit.addEventListener('mouseleave', hideTip);
+  });
+  // ACWR shares the x positions but lives in its own chart (one axis per chart).
+  const ab = document.getElementById('ch-acwr'); const fa = frame(ab, 40);
+  const vals = W.acwr.slice(-n); const ya = yScale(fa, 0.6, 1.5, false); const xa = (i) => fa.l + ((fa.w - fa.l - fa.r) / n) * (i + 0.5);
+  el('rect', { x: fa.l, y: ya(1.3), width: fa.w - fa.l - fa.r, height: ya(0.8) - ya(1.3), fill: css('--tile-2') }, fa.svg);
+  gridY(fa, ya, [0.8, 1.3], (v) => v.toFixed(1));
+  el('path', { d: vals.map((v, i) => `${i ? 'L' : 'M'}${xa(i)},${ya(v)}`).join(''), fill: 'none', stroke: css('--text'), 'stroke-width': 2, 'stroke-linejoin': 'round' }, fa.svg);
+  vals.forEach((v, i) => {
+    el('circle', { cx: xa(i), cy: ya(v), r: i === n - 1 ? 4 : 2.5, fill: css('--text'), stroke: css('--tile'), 'stroke-width': 2 }, fa.svg);
+    const hit = el('rect', { x: xa(i) - (fa.w - fa.l - fa.r) / n / 2, y: 0, width: (fa.w - fa.l - fa.r) / n, height: fa.h, fill: 'transparent' }, fa.svg);
+    hit.addEventListener('mousemove', (e) => showTip(e, `Week of ${labels[i]}`, [{ k: 'Load ratio', v: v.toFixed(2) }, { k: 'Range', v: v > 1.3 ? 'above safe' : v < 0.8 ? 'fresh / detraining' : 'safe' }]));
+    hit.addEventListener('mouseleave', hideTip);
+  });
+}
+
+function renderTrends() {
+  const n = trState.weeks, sl = (a) => a.slice(-n);
+  loadChart();
+  lineChart('ch-hrv', sl(W.hrv), { name: 'HRV', fmt: (v) => Math.round(v), band: [46, 56], bandLabel: 'normal range' });
+  lineChart('ch-rhr', sl(W.rhr), { name: 'Resting HR', fmt: (v) => Math.round(v) });
+  lineChart('ch-swpace', sl(W.swpace), { name: 'Pace /100 m', fmt: mmss, invert: true, color: css('--sport-swim') });
+  lineChart('ch-swolf', sl(W.swolf), { name: 'SWOLF', fmt: (v) => Math.round(v), invert: true, color: css('--sport-swim') });
+  lineChart('ch-eff', sl(W.eff), { name: 'Pace at 140 bpm', fmt: mmss, invert: true, color: css('--sport-run') });
+  lineChart('ch-cad', sl(W.cad), { name: 'Cadence', fmt: (v) => Math.round(v), ref: 160, color: css('--sport-run') });
+  lineChart('ch-cspd', sl(W.cspd), { name: 'Speed', fmt: (v) => v.toFixed(1), color: css('--sport-bike') });
+  lineChart('ch-chr', sl(W.chr), { name: 'Avg HR', fmt: (v) => Math.round(v), color: css('--sport-bike') });
+  lineChart('ch-vo2', sl(W.vo2), { name: 'VO2 max', fmt: (v) => Math.round(v) });
+  const first = W.labels.slice(-n)[0];
+  document.getElementById('tr-range-label').textContent = `Last ${n} weeks · ${first} – 15 Nov`;
+}
+document.querySelectorAll('#tr-range button').forEach(b => b.addEventListener('click', () => {
+  document.querySelectorAll('#tr-range button').forEach(x => x.classList.toggle('on', x === b));
+  trState.weeks = +b.dataset.w; renderTrends();
+}));
+document.querySelectorAll('.fchip').forEach(b => b.addEventListener('click', () => {
+  const s = b.dataset.sport;
+  if (trState.sports.has(s) && trState.sports.size > 1) trState.sports.delete(s); else trState.sports.add(s);
+  b.classList.toggle('on', trState.sports.has(s)); renderTrends();
+}));
+addEventListener('resize', () => { if (document.getElementById('page-trends').classList.contains('active')) renderTrends(); });
+
+/* ===================== Settings sub-nav ===================== */
+function jump(sec) {
+  document.querySelectorAll('#subnav button').forEach(b => b.classList.toggle('on', b.dataset.sec === sec));
+  document.getElementById('sec-' + sec).scrollIntoView({ block: 'start' });
+}
+document.querySelectorAll('#subnav button').forEach(b => b.addEventListener('click', () => jump(b.dataset.sec)));
 // mockup only: ?page=week / ?drawer=1 for screenshots
 const q = new URLSearchParams(location.search);
 if (q.get('page')) go(q.get('page'));

@@ -1,6 +1,6 @@
 # M4 plan — UI: Today + Week
 
-Draft, 2026-11-14. Layout and style follow `ui.md`. The mockup in `mockups/app.html` is where they get tested. Open it in a browser and use the rail; click the latest-activity tile for the drawer and the ⋮ on Saturday's run for quick actions.
+Draft, 2026-11-14. Layout and style follow `ui.md`. The mockup in `mockups/app.html` covers the whole app (M4 and M5 pages) and is where they get tested. Open it in a browser and use the rail; click the latest-activity tile for the drawer and the ⋮ on Saturday's run for quick actions.
 
 **Exit (from the roadmap):** the athlete can use it daily, with template summaries.
 
@@ -11,7 +11,7 @@ Yes, a cheap one, and it now exists: `docs/mockups/app.html` is one static HTML 
 - It already caught problems that `ui.md` doesn't cover (see "Changes to ui.md" below).
 - Its CSS can go straight into the renderer as `tokens.css` + component styles.
 
-Throw it away once the real Today page renders. Don't keep it in sync.
+Throw it away once the real pages render. Don't keep it in sync.
 
 ## Decisions
 
@@ -56,9 +56,21 @@ Throw it away once the real Today page renders. Don't keep it in sync.
 
 Steps 1–4 don't depend on M3; steps 5–6 need the M3 plan engine merged.
 
+## M5 pages in the mockup (not planned in detail yet)
+
+The mockup also has Trends and Races & Settings, so the whole app can be judged at once. Decisions it makes:
+- **Trends scrolls**; only Today has to fit on one screen. The range control (4/8/12 weeks) and sport chips sit in one row in the header. The chips filter the load chart, and each sport keeps its colour when the others are hidden.
+- **One y-axis per chart.** Every pair from `ui.md` (pace + SWOLF, resting HR + HRV, commute speed + HR, load + load ratio) is two small charts in one tile, never a dual-axis chart. Pace charts put faster at the top.
+- **Load tile:** weekly stacked bars by sport, with the load ratio as its own strip underneath showing the 0.8–1.3 band and sharing the week positions. The current week is labelled "so far".
+- **Focus areas:** 1–3 rule-based hints, a mix of "watch" and "going well". A hint can link to the setting that fixes it.
+- **Off states:** running dynamics shows a placeholder tile that links to Hardware instead of disappearing, so the athlete knows the chart exists. VO2 max only appears if the probe confirms the data.
+- **Races & Settings** is one scrolling page with a sub-nav: Races (A/B/C list + resulting phase timeline with race markers), My week (template roles per day), Body & zones, Hardware (toggles + auto-suggest nudge), Garmin, AI summaries, Data & about, Developer.
+- **Sport colours vs the dataviz check:** they pass the colour-blindness and contrast checks on the dark tiles, but they're brighter than the usual dark-mode band. That's deliberate (it's the poster look), and everything is always labelled.
+
 ## Open questions
 
 - [ ] React or Svelte. Proposal: React.
 - [ ] Is it OK that factor reasons move into tooltips in the compact layout? (The verdict summary still says why.)
 - [ ] Should the athlete see the mockup before the build starts? Recommended: yes, send 3 screenshots.
+- [ ] Trends: weekly averages everywhere, or daily points for HRV / resting HR?
 - [ ] Commute colour: bike orange at 55 % looks brownish in the strip. Keep it, or use a striped/hatched bike fill?

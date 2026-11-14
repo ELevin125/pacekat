@@ -9,6 +9,7 @@ import {
   generateBlock,
   generateWeek,
   matchPlanned,
+  phaseOn,
   projectAcwr,
   readinessSuggestion,
   resolveMissedKey,
@@ -36,6 +37,8 @@ import type {
   RaceView,
   Result,
   SuggestionView,
+  TemplateSlotView,
+  TimelineView,
 } from '../../shared/api';
 
 /**
@@ -633,6 +636,8 @@ export class PlanService {
     if (!r) return { ok: false, message: 'That suggestion is no longer open.', warnings: [] };
     const changes = parse<Array<{ sessionId: number; after: PlanSession }>>(r.changes_json, []);
     this.db.transaction(() => {
+      const undo = changes.map((c) => this.get(c.sessionId)).filter((x): x is StoredSession => !!x && x.status === 'planned');
+      this.db.prepare('UPDATE plan_suggestions SET undo_json = ? WHERE id = ?').run(JSON.stringify(undo), id);
       for (const c of changes) {
         const before = this.get(c.sessionId);
         if (!before || before.status !== 'planned') continue;
@@ -642,6 +647,82 @@ export class PlanService {
       this.db.prepare(`UPDATE plan_suggestions SET status = 'accepted', resolved_at = ? WHERE id = ?`).run(nowIso(), id);
     })();
     return this.edited(r.local_date, today, 'Plan adjusted for today.');
+  }
+
+  /** Put the sessions back the way they were before an accepted suggestion. */
+  undoSuggestion(id: number, today: string): PlanEditResult {
+    const r = this.db.prepare(`SELECT local_date, undo_json FROM plan_suggestions WHERE id = ? AND status = 'accepted'`).get(id) as { local_date: string; undo_json: string | null } | undefined;
+    if (!r || !r.undo_json) return { ok: false, message: 'Nothing to undo.', warnings: [] };
+    const before = parse<StoredSession[]>(r.undo_json, []);
+    this.db.transaction(() => {
+      for (const s of before) {
+        const cur = this.get(s.id);
+        if (!cur || cur.status !== 'planned') continue;
+        this.replaceContent(s.id, s, 'engine');
+        this.log('suggestion_undone', r.local_date, `Undid the readiness change: back to ${s.title}.`, 'user', s.id);
+      }
+      this.db.prepare(`UPDATE plan_suggestions SET status = 'dismissed', resolved_at = ? WHERE id = ?`).run(nowIso(), id);
+    })();
+    return this.edited(r.local_date, today, 'Back to the original plan.');
+  }
+
+  /** Today's accepted suggestion (for the "Changed to X · Undo" state). */
+  acceptedToday(today: string): SuggestionView | null {
+    const r = this.db.prepare(`SELECT * FROM plan_suggestions WHERE local_date = ? AND status = 'accepted' AND undo_json IS NOT NULL ORDER BY id DESC LIMIT 1`).get(today) as
+      | { id: number; local_date: string; kind: string; reason: string; changes_json: string; undo_json: string }
+      | undefined;
+    if (!r) return null;
+    const changes = parse<Array<{ sessionId: number; after: PlanSession }>>(r.changes_json, []);
+    const before = new Map(parse<StoredSession[]>(r.undo_json, []).map((s) => [s.id, s.title]));
+    return {
+      id: r.id,
+      date: r.local_date,
+      kind: r.kind,
+      reason: r.reason,
+      changes: changes.map((c) => ({ sessionId: c.sessionId, before: before.get(c.sessionId) ?? '?', after: c.after.title })),
+    };
+  }
+
+  /** Phases day by day from ~2 months ago until a month after the last race (Settings + race tile). */
+  timeline(today: string): TimelineView {
+    const races = this.races();
+    const lastRace = races.map((r) => r.date).sort().at(-1);
+    const from = addDays(today, -56);
+    const end = [addDays(today, 84), lastRace ? addDays(lastRace, 28) : null].filter((x): x is string => !!x).sort().at(-1)!;
+    const segments: TimelineView['segments'] = [];
+    for (const d of eachDay(from, end)) {
+      const p = phaseOn(d, races);
+      const last = segments.at(-1);
+      if (last && last.phase === p) {
+        last.to = d;
+        last.days++;
+      } else segments.push({ phase: p, from: d, to: d, days: 1 });
+    }
+    return { today, from, to: end, segments, races: this.raceViews().map((r) => ({ id: r.id, name: r.name, date: r.date, priority: r.priority, type: r.type })) };
+  }
+
+  templateView(): TemplateSlotView[] {
+    return this.template().map((t) => ({ weekday: t.weekday, slot: t.slot, role: t.role, ...(t.choices ? { choices: t.choices } : {}) }));
+  }
+
+  setTemplate(slots: TemplateSlotView[], today: string): Result {
+    const roles: Role[] = ['commute', 'strength_upper', 'strength_lower', 'swim_quality', 'swim_endurance', 'recovery', 'sat_main', 'sun_run', 'rest'];
+    const clean = slots
+      .filter((s) => Number.isInteger(s.weekday) && s.weekday >= 0 && s.weekday <= 6 && roles.includes(s.role as Role))
+      .map((s) => ({ ...s, choices: s.choices?.filter((c) => c === 'mtb' || c === 'parkrun') }));
+    if (!clean.length) return { ok: false, message: 'Your week needs at least one slot.' };
+    this.db.transaction(() => {
+      this.db.prepare('DELETE FROM week_template').run();
+      const ins = this.db.prepare('INSERT INTO week_template (weekday, slot, default_kind, options_json) VALUES (?, ?, ?, ?)');
+      const bySlot = new Map<number, number>();
+      for (const s of clean.sort((a, b) => a.weekday - b.weekday || a.slot - b.slot)) {
+        const slot = bySlot.get(s.weekday) ?? 0;
+        bySlot.set(s.weekday, slot + 1);
+        ins.run(s.weekday, slot, s.role, s.choices?.length ? JSON.stringify({ choices: s.choices }) : null);
+      }
+    })();
+    this.regenerate(today, 'Changed your usual week.');
+    return { ok: true, message: "Saved your week. The rest of this week's plan was updated." };
   }
 
   dismissSuggestion(id: number): Result {

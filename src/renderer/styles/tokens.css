@@ -1,0 +1,25 @@
+/* Design tokens (docs/ui.md). Every colour and size lives here; components use var(--…) only. */
+:root {
+  --on-sport: #0b0d10; /* text on a filled sport colour */
+  --scrim: rgba(0, 0, 0, 0.45);
+  --shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+  --bg: #0b0d10;
+  --tile: #15181d;
+  --tile-2: #1b1f25;
+  --border: #22262d;
+  --text: #e8eaed;
+  --text-2: #9aa0a6;
+  --text-3: #6b7178;
+  --warn: #ff5a5f;
+  --sport-swim: #3da5ff;
+  --sport-bike: #ff8a3d;
+  --sport-run: #b8f04a;
+  --sport-strength: #a78bfa;
+  --sport-other: #8a9099;
+  --radius: 16px;
+  --radius-sm: 10px;
+  --gap: 12px;
+  --rail: 64px;
+  --font: "Inter Variable", Inter, "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
+  color-scheme: dark;
+}

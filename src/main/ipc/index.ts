@@ -6,7 +6,8 @@ import { GarminAuthError, GarminClient, GarminNetworkError } from '../garmin/cli
 import { staticEndpoints } from '../garmin/endpoints';
 import { GARMIN_KEY, GARMIN_TOKEN, normaliseGarminKey, type SecretStore } from '../secrets';
 import { SyncService } from '../sync';
-import { registerMetricsIpc } from './metrics';
+import { listActivities, registerMetricsIpc } from './metrics';
+import { registerUiIpc } from './ui';
 import { registerPlanIpc } from './plan';
 import { PlanService } from '../plan/service';
 import { ensureDerived } from '../sync/derive';
@@ -19,15 +20,39 @@ export interface IpcContext {
   timeZone: string;
   getWindow: () => BrowserWindow | null;
   log: (msg: string) => void;
+  openDebug: () => void;
 }
 
 /** Wires the typed API (src/shared/api.ts) to main-process services. */
 export function registerIpc(ctx: IpcContext): { sync: () => SyncService | null; runSync: (full?: boolean) => Promise<void> } {
   const { db, secrets } = ctx;
   const plan = new PlanService(db);
-  const recomputeMetrics = registerMetricsIpc({ db, fitDir: ctx.fitDir, timeZone: ctx.timeZone, log: ctx.log, afterRecompute: (today) => plan.afterMetrics(today) });
+  /** Tell the renderer to refetch (after sync, recompute, plan edits, settings changes). */
+  const notify = () => ctx.getWindow()?.webContents.send(IPC.dataChanged);
+  const recomputeMetrics = registerMetricsIpc({
+    db,
+    fitDir: ctx.fitDir,
+    timeZone: ctx.timeZone,
+    log: ctx.log,
+    afterRecompute: (today) => {
+      plan.afterMetrics(today);
+      notify();
+    },
+  });
   // Plan edits change planned load only; matching/adaptation re-run on the next recompute.
-  registerPlanIpc(plan, ctx.timeZone, () => {});
+  registerPlanIpc(plan, ctx.timeZone, notify);
+  registerUiIpc({
+    db,
+    secrets,
+    plan,
+    fitDir: ctx.fitDir,
+    timeZone: ctx.timeZone,
+    getWindow: ctx.getWindow,
+    recompute: () => void recomputeMetrics(),
+    notify,
+    openDebug: ctx.openDebug,
+    listActivities: (where, params, limit) => listActivities(db, where, params, limit),
+  });
   // Bring derived data and metrics up to date on start (cheap; picks up mapping/threshold changes after an update).
   try {
     const n = ensureDerived(db);
@@ -133,6 +158,7 @@ export function registerIpc(ctx: IpcContext): { sync: () => SyncService | null; 
       result.errors.push(`metrics: ${(err as Error).message}`);
     }
     send({ phase: result.ok ? 'done' : 'error', message: result.message, done: 1, total: 1 });
+    setSetting(db, 'last_sync_new_activities', result.newActivities);
     if (result.ok) markOk();
     else markError(result.message);
     return result;

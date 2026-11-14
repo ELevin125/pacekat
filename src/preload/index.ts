@@ -5,6 +5,13 @@ const api: PacekatApi = {
   app: {
     info: () => ipcRenderer.invoke(IPC.appInfo),
     openDataFolder: () => ipcRenderer.invoke(IPC.appOpenDataFolder),
+    exportBackup: () => ipcRenderer.invoke(IPC.appExportBackup),
+    openDebug: () => ipcRenderer.invoke(IPC.appOpenDebug),
+    onChanged: (cb) => {
+      const listener = () => cb();
+      ipcRenderer.on(IPC.dataChanged, listener);
+      return () => ipcRenderer.removeListener(IPC.dataChanged, listener);
+    },
   },
   garmin: {
     status: () => ipcRenderer.invoke(IPC.garminStatus),
@@ -30,6 +37,21 @@ const api: PacekatApi = {
     list: (limit) => ipcRenderer.invoke(IPC.activitiesList, limit),
     setRpe: (id, rpe) => ipcRenderer.invoke(IPC.activitiesSetRpe, id, rpe),
     setCommute: (id, value) => ipcRenderer.invoke(IPC.activitiesSetCommute, id, value),
+    detail: (id) => ipcRenderer.invoke(IPC.activitiesDetail, id),
+    between: (from, to) => ipcRenderer.invoke(IPC.activitiesBetween, from, to),
+  },
+  summaries: {
+    daily: (date) => ipcRenderer.invoke(IPC.summariesDaily, date),
+  },
+  trends: {
+    get: (weeks) => ipcRenderer.invoke(IPC.trendsGet, weeks),
+  },
+  settings: {
+    get: () => ipcRenderer.invoke(IPC.settingsGet),
+    set: (patch) => ipcRenderer.invoke(IPC.settingsSet, patch),
+    setZones: (zones) => ipcRenderer.invoke(IPC.settingsSetZones, zones),
+    template: () => ipcRenderer.invoke(IPC.settingsTemplate),
+    setTemplate: (slots) => ipcRenderer.invoke(IPC.settingsSetTemplate, slots),
   },
   plan: {
     week: (weekStart) => ipcRenderer.invoke(IPC.planWeek, weekStart),
@@ -43,11 +65,14 @@ const api: PacekatApi = {
     change: (id, key) => ipcRenderer.invoke(IPC.planChange, id, key),
     acceptSuggestion: (id) => ipcRenderer.invoke(IPC.planAcceptSuggestion, id),
     dismissSuggestion: (id) => ipcRenderer.invoke(IPC.planDismissSuggestion, id),
+    undoSuggestion: (id) => ipcRenderer.invoke(IPC.planUndoSuggestion, id),
+    acceptedToday: () => ipcRenderer.invoke(IPC.planAcceptedToday),
   },
   races: {
     list: () => ipcRenderer.invoke(IPC.racesList),
     save: (race) => ipcRenderer.invoke(IPC.racesSave, race),
     remove: (id) => ipcRenderer.invoke(IPC.racesRemove, id),
+    timeline: () => ipcRenderer.invoke(IPC.racesTimeline),
   },
   debug: {
     tables: () => ipcRenderer.invoke(IPC.debugTables),
