@@ -10,18 +10,19 @@ Load is always computed on the **same HR-based scale**, so commutes, MTB, swims,
 
 Order of preference per activity:
 
-1. **HR TRIMP (Banister)** from per-second HR in the FIT file:
+1. **HR TRIMP (Banister)** from the HR samples in the FIT file:
    `TRIMP = Σ (dt_min × HRr × 0.64 × e^(1.92 × HRr))`, where `HRr = (HR − HRrest) / (HRmax − HRrest)` clamped to [0, 1].
+   Garmin "smart recording" logs every few seconds (≈ 6 s seen in real data), so each sample counts for the time until the next one, **capped at 30 s** so pauses add no load. Used when samples cover ≥ 50 % of the activity; duration is moving time when Garmin gives it.
    `HRrest` = 7-day mean resting HR from `daily_health`; `HRmax` from settings (default: Garmin profile / zones; editable).
 2. **Average-HR TRIMP** if only avg HR is available (same formula with one sample × duration).
 3. **Session RPE** when HR is unreliable or missing: `sRPE = duration_min × RPE`, converted to TRIMP units with factor `k`:
-   `k = median(TRIMP / sRPE)` over the athlete's last 60 days of sessions that have both. Default `k = 0.3` until ≥ 10 such sessions exist (tune after the probe).
+   `k = median(TRIMP / sRPE)` over the athlete's last 60 days of sessions that have both (pool swims excluded unless swim HR is trusted), clamped to 0.1–1.0. Default `k = 0.3` until ≥ 10 such sessions exist.
    Sanity check for the default: 60 min at moderate effort (HRr ≈ 0.6) ≈ 73 TRIMP; at RPE 5 that's sRPE 300 → ratio ≈ 0.25. 60 min hard (HRr ≈ 0.8) ≈ 143 TRIMP at RPE 7–8 → ≈ 0.3. A higher default would roughly double-count swims and gym sessions until calibration kicks in.
 
 HR reliability rules:
 - **Pool swims:** wrist HR is unreliable → use sRPE **unless** the `swimHrStorage` sensor toggle is on (HRM 600 stores and forwards swim HR).
 - **Strength:** HR TRIMP under-counts lifting; use `max(TRIMP, sRPE × k)`.
-- Prompt for RPE (1–10 tap) after any activity that needs it; allow it on every activity.
+- Prompt for RPE (1–10 tap) after any activity that needs it; allow it on every activity. Until it's entered, the load assumes RPE 5 and is marked as an estimate (`srpe_estimate`).
 
 **Power (TSS)** is computed and displayed for rides only when the `bikePower` toggle is on and the ride has power data. It is **not** used for the load ratio — switching the primary metric mid-history would distort it for ~4 weeks.
 
@@ -38,16 +39,20 @@ Output: `go` | `easy` | `rest` + list of factors with status and a one-line reas
 
 | Factor | Amber when | Red when |
 |---|---|---|
-| HRV (last night vs Garmin baseline range) | below baseline low | below baseline low for 3+ consecutive days |
+| HRV (last night vs Garmin's "low" line, `baseline.lowUpper`; falls back to `balancedLow`) | below the low line | below it 3+ nights in a row |
 | Resting HR vs 7-day mean | ≥ +5 bpm | ≥ +8 bpm |
 | Sleep | < 6 h or score < 60 | < 5 h or score < 45 |
 | Body Battery at wake | < 50 | < 30 |
 | ACWR | > 1.3 | > 1.5 |
-| Yesterday's load vs 28-day avg daily load | > 2× | > 3× |
+| Yesterday's load vs a typical training day (mean of days with load in the last 28; needs ≥ 4) | > 2× | > 3× |
 
 Combine: any red → `rest`; ≥ 2 amber → `easy`; else `go`. If ≥ 3 inputs are missing → `easy` with reason "not enough data today".
 
-Initial values only — put them in `constants.ts`. Verify against the athlete's real data after the probe; readiness should be `go` on most normal mornings.
+**HRV and Body Battery count as one amber when both are amber**: Garmin computes Body Battery's overnight recharge from HRV, so one rough night would otherwise count twice.
+
+Values live in `src/main/engine/constants.ts`. Checked against 30 days of real data (2026-11-14): 23 go · 3 easy · 4 rest, each non-go day with a concrete reason. Two changes came from that check:
+- HRV first compared against `balancedLow`, which flagged ~1 night in 3 for being 1–3 ms under; Garmin's own low line fixes that.
+- Yesterday's load was first compared against the 28-day *daily* average (rest days included). Anyone training 2–3×/week then got "rest" after every session; a typical training day is the right yardstick whatever the frequency.
 
 ## 4. Races & periodisation
 

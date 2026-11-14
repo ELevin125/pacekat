@@ -1,4 +1,6 @@
-import { nowIso, type DB } from '../db';
+import type { DB } from '../db';
+import { nowIso } from '../db/util';
+import { getSetting, setSetting } from '../db/settings';
 
 /**
  * Rebuild `daily_health` rows from `raw_daily`. Pure mapping from the raw
@@ -19,6 +21,7 @@ export interface DailyHealth {
   resting_hr: number | null;
   hrv_last_night_ms: number | null;
   hrv_weekly_avg_ms: number | null;
+  hrv_low_ms: number | null;
   hrv_baseline_low_ms: number | null;
   hrv_baseline_high_ms: number | null;
   hrv_status: string | null;
@@ -50,6 +53,7 @@ export function deriveDay(date: string, raw: Partial<Record<string, unknown>>): 
     resting_hr: int(obj(sum?.heartRate)?.restingValue),
     hrv_last_night_ms: int(hrv?.lastNightAvg),
     hrv_weekly_avg_ms: int(hrv?.weeklyAvg),
+    hrv_low_ms: int(baseline?.lowUpper),
     // Garmin's "balanced" range is the personal baseline band.
     hrv_baseline_low_ms: int(baseline?.balancedLow),
     hrv_baseline_high_ms: int(baseline?.balancedUpper),
@@ -125,10 +129,25 @@ function weightKg(w: Obj | null): number | null {
 }
 
 const DH_COLS: Array<keyof DailyHealth> = [
-  'local_date', 'resting_hr', 'hrv_last_night_ms', 'hrv_weekly_avg_ms', 'hrv_baseline_low_ms', 'hrv_baseline_high_ms',
+  'local_date', 'resting_hr', 'hrv_last_night_ms', 'hrv_weekly_avg_ms', 'hrv_low_ms', 'hrv_baseline_low_ms', 'hrv_baseline_high_ms',
   'hrv_status', 'sleep_seconds', 'sleep_score', 'body_battery_wake', 'body_battery_min', 'body_battery_max',
   'stress_avg', 'respiration_avg', 'spo2_avg', 'steps', 'weight_kg',
 ];
+
+/**
+ * Bump when the raw → daily_health mapping changes; on start-up every stored
+ * day is re-derived from raw_daily (no re-fetch needed).
+ *   2: hrv_low_ms (Garmin lowUpper)
+ */
+export const DERIVE_VERSION = 2;
+
+export function ensureDerived(db: DB): number {
+  if (getSetting<number>(db, 'derive_version', 0) >= DERIVE_VERSION) return 0;
+  const dates = (db.prepare('SELECT DISTINCT local_date FROM raw_daily').all() as Array<{ local_date: string }>).map((r) => r.local_date);
+  const n = deriveDailyHealth(db, dates);
+  setSetting(db, 'derive_version', DERIVE_VERSION);
+  return n;
+}
 
 export function deriveDailyHealth(db: DB, dates: Iterable<string>): number {
   const readRaw = db.prepare('SELECT data_type, raw_json FROM raw_daily WHERE local_date = ?');

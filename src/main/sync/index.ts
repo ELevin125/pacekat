@@ -2,7 +2,7 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { nowIso, type DB } from '../db';
 import type { GarminResponse } from '../garmin/client';
-import { GarminAuthError } from '../garmin/client';
+import { GarminAuthError, GarminNetworkError } from '../garmin/client';
 import { activities as activityEndpoints, rangeEndpoints, staticEndpoints, type DateStr, type RequestSpec } from '../garmin/endpoints';
 import { addDays, chunkRange, daysBetween, eachDay, localToday } from '../garmin/dates';
 import { extractActivityFiles } from '../garmin/activity-file';
@@ -65,7 +65,7 @@ export class SyncService {
     try {
       await client.ensureToken();
     } catch (err) {
-      const msg = err instanceof GarminAuthError ? err.message : `Could not reach Garmin: ${(err as Error).message}`;
+      const msg = err instanceof GarminAuthError || err instanceof GarminNetworkError ? err.message : `Could not reach Garmin: ${(err as Error).message}`;
       progress({ phase: 'error', message: msg, done: 0, total: 1 });
       return { ok: false, message: msg, from: earliest, to: today, newActivities: 0, errors: [msg] };
     }
@@ -91,7 +91,7 @@ export class SyncService {
         if (ep.name === 'hr-zones') this.saveHrZones(body);
         this.setState(ep.name, today, null);
       } catch (err) {
-        if (err instanceof GarminAuthError) return this.authAbort(err, earliest, today, errors);
+        if (err instanceof GarminAuthError || err instanceof GarminNetworkError) return this.abort(err, earliest, today, errors);
         errors.push(this.recordError(ep.name, err));
       }
       progress({ phase: 'profile', message: ep.name, done: i + 1, total: staticEndpoints.length });
@@ -121,7 +121,7 @@ export class SyncService {
             }
           })();
         } catch (err) {
-          if (err instanceof GarminAuthError) return this.authAbort(err, earliest, today, errors);
+          if (err instanceof GarminAuthError || err instanceof GarminNetworkError) return this.abort(err, earliest, today, errors);
           errors.push(this.recordError(type, err));
           failed = true;
           break; // keep last_synced_date where it was so the gap is retried next time
@@ -152,7 +152,7 @@ export class SyncService {
         if (body.length < activityEndpoints.pageSize) break;
       }
     } catch (err) {
-      if (err instanceof GarminAuthError) return this.authAbort(err, earliest, today, errors);
+      if (err instanceof GarminAuthError || err instanceof GarminNetworkError) return this.abort(err, earliest, today, errors);
       errors.push(this.recordError('activities', err));
       activitiesOk = false;
     }
@@ -172,7 +172,7 @@ export class SyncService {
         }
         await this.fetchActivityFile(id);
       } catch (err) {
-        if (err instanceof GarminAuthError) return this.authAbort(err, earliest, today, errors);
+        if (err instanceof GarminAuthError || err instanceof GarminNetworkError) return this.abort(err, earliest, today, errors);
         errors.push(this.recordError('activities', err, `activity ${id}`));
         db.prepare(`UPDATE activities SET fit_status = 'error', updated_at = ? WHERE garmin_activity_id = ?`).run(nowIso(), id);
       }
@@ -225,7 +225,8 @@ export class SyncService {
     return msg;
   }
 
-  private authAbort(err: GarminAuthError, from: string, to: string, errors: string[]): SyncResult {
+  /** Stop the whole sync: no point hitting every endpoint when the key is dead or we're offline. */
+  private abort(err: Error, from: string, to: string, errors: string[]): SyncResult {
     return { ok: false, message: err.message, from, to, newActivities: 0, errors: [...errors, err.message] };
   }
 

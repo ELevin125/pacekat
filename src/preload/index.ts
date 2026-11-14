@@ -21,6 +21,16 @@ const api: PacekatApi = {
       return () => ipcRenderer.removeListener(IPC.syncProgress, listener);
     },
   },
+  metrics: {
+    summary: () => ipcRenderer.invoke(IPC.metricsSummary),
+    readiness: (days) => ipcRenderer.invoke(IPC.metricsReadiness, days),
+    daily: (days) => ipcRenderer.invoke(IPC.metricsDaily, days),
+  },
+  activities: {
+    list: (limit) => ipcRenderer.invoke(IPC.activitiesList, limit),
+    setRpe: (id, rpe) => ipcRenderer.invoke(IPC.activitiesSetRpe, id, rpe),
+    setCommute: (id, value) => ipcRenderer.invoke(IPC.activitiesSetCommute, id, value),
+  },
   debug: {
     tables: () => ipcRenderer.invoke(IPC.debugTables),
     rows: (table, limit, offset) => ipcRenderer.invoke(IPC.debugRows, table, limit, offset),

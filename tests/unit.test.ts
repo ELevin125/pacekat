@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { addDays, chunkRange, eachDay, localToday } from '../src/main/garmin/dates';
-import { GarminAuthError, GarminClient, parseTokenResponse } from '../src/main/garmin/client';
+import { GarminAuthError, GarminClient, GarminNetworkError, parseTokenResponse } from '../src/main/garmin/client';
 import { extractActivityFiles, isFitBytes } from '../src/main/garmin/activity-file';
 import { mapActivitySummary, sportFamily } from '../src/main/sync/activities';
 import { splitByDay } from '../src/main/sync/split';
@@ -113,6 +113,23 @@ describe('GarminClient', () => {
     const f = mkFetch(() => new Response('', { status: 401 }));
     const c = new GarminClient({ apiKey: 'GCDC_k', baseUrl: 'http://x', fetchImpl: f as typeof fetch, minIntervalMs: 0 });
     await expect(c.ensureToken()).rejects.toBeInstanceOf(GarminAuthError);
+  });
+
+  it('gives up quickly with GarminNetworkError when offline', async () => {
+    const f = vi.fn(async () => {
+      throw Object.assign(new TypeError('fetch failed'), { cause: { code: 'ENOTFOUND' } });
+    });
+    const c = new GarminClient({ apiKey: 'GCDC_k', baseUrl: 'http://x', fetchImpl: f as typeof fetch, minIntervalMs: 0 });
+    await expect(c.ensureToken()).rejects.toThrow(/Couldn't reach Garmin \(ENOTFOUND\)/);
+    // With a cached token, data calls retry a little, then fail as a network error.
+    const c2 = new GarminClient({
+      apiKey: 'GCDC_k', baseUrl: 'http://x', fetchImpl: f as typeof fetch, minIntervalMs: 0,
+      tokenStore: { load: () => ({ accessToken: 't', expiresAt: Date.now() + 5 * 3600_000 }), save: () => {} },
+    });
+    (c2 as unknown as { backoff: () => Promise<void> }).backoff = async () => {};
+    f.mockClear();
+    await expect(c2.get({ path: '/a' })).rejects.toBeInstanceOf(GarminNetworkError);
+    expect(f).toHaveBeenCalledTimes(3);
   });
 
   it('returns null for 204 No Content', async () => {

@@ -47,4 +47,4 @@ export function migrate(db: DB, list: Migration[] = migrations): number {
   return applied;
 }
 
-export const nowIso = (): string => new Date().toISOString();
+export { nowIso } from './util';

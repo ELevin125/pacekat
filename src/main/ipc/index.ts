@@ -1,11 +1,13 @@
 import { app, ipcMain, shell, type BrowserWindow } from 'electron';
-import { IPC, type AppInfo, type GarminStatus, type Result, type SyncStatus, type TableInfo, type TableRows } from '../../shared/api';
+import { IPC, type AppInfo, type GarminStatus, type Result, type SyncProgress, type SyncStatus, type TableInfo, type TableRows } from '../../shared/api';
 import type { DB } from '../db';
 import { getSetting, setSetting } from '../db/settings';
-import { GarminAuthError, GarminClient } from '../garmin/client';
+import { GarminAuthError, GarminClient, GarminNetworkError } from '../garmin/client';
 import { staticEndpoints } from '../garmin/endpoints';
 import { GARMIN_KEY, GARMIN_TOKEN, normaliseGarminKey, type SecretStore } from '../secrets';
 import { SyncService } from '../sync';
+import { registerMetricsIpc } from './metrics';
+import { ensureDerived } from '../sync/derive';
 
 export interface IpcContext {
   db: DB;
@@ -20,6 +22,15 @@ export interface IpcContext {
 /** Wires the typed API (src/shared/api.ts) to main-process services. */
 export function registerIpc(ctx: IpcContext): { sync: () => SyncService | null; runSync: (full?: boolean) => Promise<void> } {
   const { db, secrets } = ctx;
+  const recomputeMetrics = registerMetricsIpc({ db, fitDir: ctx.fitDir, timeZone: ctx.timeZone, log: ctx.log });
+  // Bring derived data and metrics up to date on start (cheap; picks up mapping/threshold changes after an update).
+  try {
+    const n = ensureDerived(db);
+    if (n) ctx.log(`re-derived daily_health for ${n} days`);
+    recomputeMetrics();
+  } catch (err) {
+    ctx.log(`metrics recompute failed: ${(err as Error).message}`);
+  }
 
   const makeClient = (): GarminClient | null => {
     const apiKey = secrets.get(GARMIN_KEY);
@@ -96,7 +107,7 @@ export function registerIpc(ctx: IpcContext): { sync: () => SyncService | null; 
       markOk();
       return { ok: true, message: typeof name === 'string' && name ? `Connected to Garmin as ${name}.` : 'Connected to Garmin.' };
     } catch (err) {
-      const msg = err instanceof GarminAuthError ? err.message : `Could not reach Garmin: ${(err as Error).message}`;
+      const msg = err instanceof GarminAuthError || err instanceof GarminNetworkError ? err.message : `Could not reach Garmin: ${(err as Error).message}`;
       markError(msg);
       return { ok: false, message: msg };
     }
@@ -105,7 +116,18 @@ export function registerIpc(ctx: IpcContext): { sync: () => SyncService | null; 
   const runSync = async (full = false) => {
     const s = getSync();
     if (!s) throw new Error('No Garmin key saved yet.');
-    const result = await s.run({ full }, (p) => ctx.getWindow()?.webContents.send(IPC.syncProgress, p));
+    const send = (p: SyncProgress) => ctx.getWindow()?.webContents.send(IPC.syncProgress, p);
+    const result = await s.run({ full }, (p) => {
+      // Hold back "done" until metrics are recomputed so the UI refreshes with fresh numbers.
+      if (p.phase !== 'done') send(p);
+    });
+    try {
+      recomputeMetrics();
+    } catch (err) {
+      ctx.log(`metrics recompute failed: ${(err as Error).message}`);
+      result.errors.push(`metrics: ${(err as Error).message}`);
+    }
+    send({ phase: result.ok ? 'done' : 'error', message: result.message, done: 1, total: 1 });
     if (result.ok) markOk();
     else markError(result.message);
     return result;

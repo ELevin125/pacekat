@@ -42,6 +42,14 @@ export type GarminResponse =
   | { status: number; ok: true; contentType: string; bytes: Uint8Array; json?: undefined }
   | { status: number; ok: false; contentType: string; errorText: string };
 
+/** Garmin couldn't be reached at all (offline, DNS, timeout) after retries. */
+export class GarminNetworkError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'GarminNetworkError';
+  }
+}
+
 export class GarminAuthError extends Error {
   constructor(message: string, readonly status: number) {
     super(message);
@@ -53,6 +61,8 @@ const REFRESH_MARGIN_MS = 60 * 60 * 1000; // refresh when < 1 h left
 const DEFAULT_TOKEN_TTL_MS = 24 * 60 * 60 * 1000;
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+/** Network failures are retried less than 429/5xx: if we're offline, waiting won't help much. */
+const MAX_NETWORK_RETRIES = 2;
 
 export class GarminClient {
   private readonly baseUrl: string;
@@ -76,7 +86,7 @@ export class GarminClient {
     if (!force && this.token && this.token.expiresAt - Date.now() > REFRESH_MARGIN_MS) {
       return this.token.accessToken;
     }
-    const res = await this.fetchWithTimeout(this.baseUrl + GARMIN_TOKEN_PATH, {
+    const res = await this.fetchNetworkSafe(this.baseUrl + GARMIN_TOKEN_PATH, {
       method: 'POST',
       // The token body's content type isn't documented; requiring JSON gets a 406. Accept anything.
       headers: { Authorization: `ApiKey ${this.opts.apiKey.trim()}`, Accept: '*/*' },
@@ -113,7 +123,7 @@ export class GarminClient {
           },
         });
       } catch (err) {
-        if (attempt >= maxRetries) throw err;
+        if (attempt >= Math.min(maxRetries, MAX_NETWORK_RETRIES)) throw toNetworkError(err);
         await this.backoff(attempt, null, `network error on ${spec.path}`);
         continue;
       }
@@ -157,9 +167,23 @@ export class GarminClient {
     await sleep(ms);
   }
 
+  private async fetchNetworkSafe(url: string, init: RequestInit): Promise<Response> {
+    try {
+      return await this.fetchWithTimeout(url, init);
+    } catch (err) {
+      throw toNetworkError(err);
+    }
+  }
+
   private async fetchWithTimeout(url: string, init: RequestInit): Promise<Response> {
     return this.fetchImpl(url, { ...init, signal: AbortSignal.timeout(this.opts.timeoutMs ?? 60_000) });
   }
+}
+
+function toNetworkError(err: unknown): GarminNetworkError {
+  const e = err as Error & { cause?: { code?: string } };
+  const code = e.cause?.code ? ` (${e.cause.code})` : e.name === 'TimeoutError' ? ' (timed out)' : '';
+  return new GarminNetworkError(`Couldn't reach Garmin${code}. Check the internet connection; we'll try again next sync.`);
 }
 
 /**

@@ -11,16 +11,49 @@
   </head>
   <body>
     <header class="top">
-      <h1>Pacekat <span class="muted">· M1 debug views</span></h1>
+      <h1>Pacekat <span class="muted">· debug views</span></h1>
       <nav>
-        <button data-tab="garmin" class="tab active">Garmin</button>
+        <button data-tab="readiness" class="tab active">Readiness</button>
+        <button data-tab="activities" class="tab">Activities</button>
+        <button data-tab="garmin" class="tab">Garmin</button>
         <button data-tab="sync" class="tab">Sync</button>
         <button data-tab="data" class="tab">Data</button>
       </nav>
     </header>
 
     <main>
-      <section id="tab-garmin" class="panel">
+      <section id="tab-readiness" class="panel">
+        <div class="tile hero">
+          <p class="muted" id="today-date"></p>
+          <h2 id="today-verdict" class="verdict">—</h2>
+          <div class="meter" id="today-meter"><span></span><span></span><span></span></div>
+          <p id="today-summary"></p>
+          <ul id="today-factors" class="factors"></ul>
+        </div>
+        <div class="tile">
+          <h2>Engine inputs</h2>
+          <dl id="engine-info" class="kv"></dl>
+          <p class="muted small">Marks: ✓ fine · ! watch · ✕ warning · – no data. Readiness uses last night's data and load through yesterday.</p>
+        </div>
+        <div class="tile wide">
+          <h2>Last 30 days</h2>
+          <div class="scroll"><table id="readiness-table"></table></div>
+        </div>
+      </section>
+
+      <section id="tab-activities" class="panel hidden">
+        <div class="tile wide">
+          <div class="row spread">
+            <h2>Activities</h2>
+            <span id="rpe-note" class="muted"></span>
+          </div>
+          <p class="muted small">RPE = how hard it felt, 1 (very easy) to 10 (max). It sets load for pool swims and strength, and calibrates the effort-to-load factor.</p>
+          <p id="act-msg" class="msg"></p>
+          <div class="scroll"><table id="activities-table"></table></div>
+        </div>
+      </section>
+
+      <section id="tab-garmin" class="panel hidden">
         <div class="tile">
           <h2>Garmin connection</h2>
           <p id="garmin-status" class="muted">Loading…</p>

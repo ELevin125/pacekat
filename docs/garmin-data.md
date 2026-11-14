@@ -47,6 +47,14 @@ Deliberately **not called** (unrelated to training): nutrition logs, weight goal
 
 HRV single-day returns **204** when there's no data for that night.
 
+### Seen in real data (first sync, 2026-11-14)
+
+- **Weight is in grams** (e.g. `88000`), despite the spec saying kilograms. `derive.ts` converts values > 1000. `sourceType` can be `USER_SETTING` (profile weight), `MANUAL` or `CHANGE_LOG`.
+- **FIT records are not per-second**: walks came at ≈ 1 record / 6 s ("smart recording"). Load integrates over real sample gaps (`coaching-engine.md` §1).
+- HRV baseline appears after ~3 weeks of nightly readings; `lowUpper` < `balancedLow` < `balancedUpper`. Garmin's `status` (BALANCED / UNBALANCED / LOW) follows the **weekly** average vs these bands.
+- Body Battery reports return a row for every requested day, even before the account has data; the other daily endpoints only return days with data.
+- Token exchange returns **406** if the request says `Accept: application/json`; send `Accept: */*`.
+
 ### Notable fields in the activity summary schema
 
 `SummarizedActivityDTO` includes `vO2MaxValue`, `activityTrainingLoad`, `aerobicTrainingEffect`/`anaerobicTrainingEffect`, `hrTimeInZone_1..5`, `averageSwolf`, `poolLength`, `activeLengths`, running dynamics averages (`avgGroundContactTime`, `avgVerticalOscillation`, `avgStrideLength`), power fields (`normPower`, `trainingStressScore`, `maxAvgPower_*`), `startTimeLocal`/`startTimeGMT`. So **VO2 max is likely available per activity** — confirm with real data.
@@ -104,7 +112,7 @@ Implemented in `src/main/db/migrations/001_initial.sql`. "Store raw, derive late
 
 - `raw_daily (data_type, local_date, raw_json)` — each range response split into one row per day per data type.
 - `raw_static (data_type, raw_json)` — profile settings and HR zones as returned.
-- `daily_health` is **derived** from `raw_daily` by `src/main/sync/derive.ts` and can be rebuilt any time without re-fetching. Field mapping (from the spec): resting HR ← `daily-summaries.heartRate.restingValue`; HRV ← `hrv-daily.lastNightAvg/weeklyAvg`, baseline ← `baseline.balancedLow/balancedUpper`; sleep ← `sleepTimeSeconds`, `sleepScores.overall.value`; Body Battery at wake ← first reading ≤ 3 h after `sleepEndTimestampGMT`; min/max, stress, respiration, SpO2, steps ← daily summary; weight ← weight-range.
+- `daily_health` is **derived** from `raw_daily` by `src/main/sync/derive.ts` and can be rebuilt any time without re-fetching. Bump `DERIVE_VERSION` when the mapping changes; every stored day is re-derived on next start. Field mapping (from the spec): resting HR ← `daily-summaries.heartRate.restingValue`; HRV ← `hrv-daily.lastNightAvg/weeklyAvg`, baseline ← `baseline.balancedLow/balancedUpper`; sleep ← `sleepTimeSeconds`, `sleepScores.overall.value`; Body Battery at wake ← first reading ≤ 3 h after `sleepEndTimestampGMT`; min/max, stress, respiration, SpO2, steps ← daily summary; weight ← weight-range.
 - `activities.raw_json` keeps the search summary; `detail_json` keeps the detail call.
 
 Initial sketch (kept for reference; the migration is authoritative and adds `garmin_training_load`, `vo2max`, `fit_status`, `fit_parsed_at`, `detail_json`, and a `secrets` table):

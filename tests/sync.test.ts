@@ -2,7 +2,7 @@ import { existsSync, mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { GarminAuthError } from '../src/main/garmin/client';
+import { GarminAuthError, GarminNetworkError } from '../src/main/garmin/client';
 import { addDays, eachDay } from '../src/main/garmin/dates';
 import { BACKFILL_DAYS, SyncService } from '../src/main/sync';
 import type { DB } from '../src/main/db';
@@ -193,6 +193,20 @@ describe('SyncService', () => {
     expect(r.ok).toBe(false);
     expect(r.message).toMatch(/401/);
     expect(g.calls).toHaveLength(0);
+  });
+
+  it('stops at the first network failure instead of trying every endpoint', async () => {
+    const g = fakeGarmin();
+    (g as unknown as { routes: Array<[RegExp, unknown]> }).routes.unshift([
+      /./,
+      () => {
+        throw new GarminNetworkError("Couldn't reach Garmin (ENOTFOUND).");
+      },
+    ]);
+    const r = await service(g).run();
+    expect(r.ok).toBe(false);
+    expect(r.message).toMatch(/Couldn't reach Garmin/);
+    expect(g.calls).toHaveLength(1);
   });
 
   it('refuses to run twice at once', async () => {

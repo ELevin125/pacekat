@@ -62,9 +62,10 @@ Rules:
     /db                  ← better-sqlite3, migrations/, settings
     /secrets             ← safeStorage-encrypted key + token cache
     /ipc                 ← IPC handlers
-    /engine              ← (M2+) PURE functions: load, readiness, plan, adaptation
-      sessions.json      ← session library (data, not code)
+    /engine              ← PURE functions: load, ACWR, readiness, commute, matching (M2); plan, adaptation (M3)
       constants.ts       ← all thresholds in one place
+      sessions.json      ← (M3) session library (data, not code)
+    /metrics             ← recompute: DB ↔ engine glue, runs after every sync and manual edit
     /ai                  ← (M6)
   /preload/index.ts      ← contextBridge → window.pacekat (built as CJS for the sandbox)
   /renderer              ← UI (M1: debug views)

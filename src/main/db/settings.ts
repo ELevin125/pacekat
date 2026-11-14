@@ -1,4 +1,5 @@
-import { nowIso, type DB } from './index';
+import type { DB } from './index';
+import { nowIso } from './util';
 
 /** Key/value settings stored as JSON. */
 export function getSetting<T>(db: DB, key: string, fallback: T): T {

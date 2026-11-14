@@ -14,8 +14,8 @@ Build in this order. Each milestone should end with something runnable and tests
 - Bare-bones debug views (tables) to inspect synced data.
 - **Exit:** fresh install → paste key → 90 days of data in the DB on Linux and Windows.
 
-## M2 — Metrics
-- Load (TRIMP / sRPE / k calibration), ACWR, readiness verdict, commute detection, planned-vs-done matching.
+## M2 — Metrics  ✅ built (2026-11-14) — tuned on 30 days of real data; the athlete's own check pending
+- Load (TRIMP / sRPE / k calibration), ACWR, readiness verdict, commute detection, planned-vs-done matching (pure function; wired to the plan in M3).
 - RPE prompt.
 - Unit + fixture-based tests.
 - **Exit:** readiness verdicts for the last 30 days look sensible to the athlete.
