@@ -114,6 +114,91 @@ export interface ActivityItem {
   commuteSource: 'auto' | 'manual' | null;
 }
 
+export interface PlanSessionView {
+  id: number;
+  date: string;
+  slot: number;
+  sport: string;
+  sessionKey: string | null;
+  title: string;
+  durationMin: number;
+  intensity: string;
+  isKey: boolean;
+  fixed: boolean;
+  purpose: string | null;
+  structure: { warmup?: string; main: string; cooldown?: string } | null;
+  targets: Record<string, string>;
+  estLoad: number;
+  notes: string[];
+  status: 'planned' | 'done' | 'partial' | 'missed' | 'skipped' | 'moved';
+  source: 'engine' | 'manual';
+  matchedActivityId: number | null;
+}
+
+export interface PlanWarning {
+  code: string;
+  message: string;
+  dates: string[];
+}
+
+export interface PlanChangeView {
+  createdAt: string;
+  date: string;
+  kind: string;
+  reason: string;
+  actor: 'engine' | 'user';
+  sessionId: number | null;
+}
+
+export interface SuggestionView {
+  id: number;
+  date: string;
+  kind: string;
+  reason: string;
+  changes: Array<{ sessionId: number; before: string; after: string }>;
+}
+
+export interface PlanWeekView {
+  weekStart: string;
+  phase: string;
+  mode: string;
+  deload: boolean;
+  cap: number | null;
+  plannedLoad: number;
+  notes: string[];
+  nextRace: { name: string; date: string; priority: string; daysOut: number } | null;
+  /** Future weeks are previews until their Monday, when they're planned for real. */
+  preview: boolean;
+  sessions: PlanSessionView[];
+  warnings: PlanWarning[];
+  changes: PlanChangeView[];
+  suggestion: SuggestionView | null;
+}
+
+export interface PlanEditResult extends Result {
+  warnings: PlanWarning[];
+}
+
+export interface LibraryItem {
+  key: string;
+  title: string;
+  sport: string;
+  intensity: string;
+  isKey: boolean;
+  durationMin: [number, number];
+}
+
+export type RaceTypeId = 'sprint_tri' | 'olympic_tri' | '5k' | '10k' | 'half_marathon' | 'marathon' | 'gran_fondo' | 'mtb' | 'other';
+
+export interface RaceView {
+  id: number;
+  name: string;
+  date: string;
+  type: RaceTypeId;
+  priority: 'A' | 'B' | 'C';
+  notes: string | null;
+}
+
 export interface PacekatApi {
   app: {
     info(): Promise<AppInfo>;
@@ -145,6 +230,27 @@ export interface PacekatApi {
     /** true/false sets it manually; null goes back to automatic detection. */
     setCommute(id: number, value: boolean | null): Promise<Result>;
   };
+  plan: {
+    /** Defaults to the current week. */
+    week(weekStart?: string): Promise<PlanWeekView>;
+    /** Preview of the next `weeks` weeks from the current one. */
+    block(weeks: number): Promise<PlanWeekView[]>;
+    library(): Promise<LibraryItem[]>;
+    swap(a: number, b: number): Promise<PlanEditResult>;
+    move(id: number, date: string): Promise<PlanEditResult>;
+    skip(id: number): Promise<PlanEditResult>;
+    unskip(id: number): Promise<PlanEditResult>;
+    makeRest(date: string): Promise<PlanEditResult>;
+    change(id: number, sessionKey: string): Promise<PlanEditResult>;
+    acceptSuggestion(id: number): Promise<PlanEditResult>;
+    dismissSuggestion(id: number): Promise<Result>;
+  };
+  races: {
+    list(): Promise<RaceView[]>;
+    /** id 0 = new. */
+    save(race: Omit<RaceView, 'id'> & { id?: number }): Promise<Result>;
+    remove(id: number): Promise<Result>;
+  };
   debug: {
     tables(): Promise<TableInfo[]>;
     rows(table: string, limit: number, offset: number): Promise<TableRows>;
@@ -168,6 +274,20 @@ export const IPC = {
   activitiesList: 'activities:list',
   activitiesSetRpe: 'activities:setRpe',
   activitiesSetCommute: 'activities:setCommute',
+  planWeek: 'plan:week',
+  planBlock: 'plan:block',
+  planLibrary: 'plan:library',
+  planSwap: 'plan:swap',
+  planMove: 'plan:move',
+  planSkip: 'plan:skip',
+  planUnskip: 'plan:unskip',
+  planMakeRest: 'plan:makeRest',
+  planChange: 'plan:change',
+  planAcceptSuggestion: 'plan:acceptSuggestion',
+  planDismissSuggestion: 'plan:dismissSuggestion',
+  racesList: 'races:list',
+  racesSave: 'races:save',
+  racesRemove: 'races:remove',
   debugTables: 'debug:tables',
   debugRows: 'debug:rows',
 } as const;

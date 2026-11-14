@@ -1,4 +1,4 @@
-import type { ActivityItem, ReadinessDay, ReadinessFactor, SyncProgress, SyncResult, SyncStateRow } from '../shared/api';
+import type { ActivityItem, LibraryItem, PlanSessionView, PlanWeekView, ReadinessDay, ReadinessFactor, SyncProgress, SyncResult, SyncStateRow } from '../shared/api';
 
 /** M1 debug views. Plain DOM on purpose: the UI framework is decided before M4. */
 
@@ -15,6 +15,7 @@ tabs.forEach((b) =>
     if (b.dataset.tab === 'data') void refreshTables();
     if (b.dataset.tab === 'readiness') void refreshReadiness();
     if (b.dataset.tab === 'activities') void refreshActivities();
+    if (b.dataset.tab === 'plan') void refreshPlan();
   }),
 );
 
@@ -115,6 +116,7 @@ function showResult(r: SyncResult): void {
   void refreshGarmin();
   void refreshReadiness();
   void refreshActivities();
+  void refreshPlan();
 }
 
 async function runSync(full: boolean): Promise<void> {
@@ -288,6 +290,244 @@ function activityRow(a: ActivityItem): HTMLTableRowElement {
   tr.append(comTd);
   return tr;
 }
+
+/* ---------- Plan ---------- */
+const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+let planWeek: string | null = null;
+let library: LibraryItem[] = [];
+
+const addDaysIso = (d: string, n: number) => {
+  const x = new Date(`${d}T00:00:00Z`);
+  x.setUTCDate(x.getUTCDate() + n);
+  return x.toISOString().slice(0, 10);
+};
+const todayIso = () => new Intl.DateTimeFormat('en-CA', { year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
+
+async function refreshPlan(): Promise<void> {
+  if (!library.length) library = await api.plan.library();
+  const w = await api.plan.week(planWeek ?? undefined);
+  planWeek = w.weekStart;
+  $('week-title').textContent = `Week of ${w.weekStart}${w.preview ? ' (preview)' : ''}`;
+  const race = w.nextRace ? ` · next race: ${w.nextRace.name} (${w.nextRace.priority}) in ${w.nextRace.daysOut} days` : '';
+  $('week-meta').textContent = `${w.phase} · ${w.mode}${w.deload ? ' · recovery week' : ''} · load ${w.plannedLoad}${w.cap != null ? ` / cap ${w.cap}` : ''}${race}`;
+  const li = (t: string) => {
+    const el = document.createElement('li');
+    el.textContent = t;
+    return el;
+  };
+  $('week-notes').replaceChildren(...w.notes.map(li));
+  $('week-warnings').replaceChildren(...w.warnings.map((x) => li(`⚠ ${x.message}`)));
+  renderSuggestion(w);
+  renderGrid(w);
+  $('changes-list').replaceChildren(
+    ...(w.changes.length ? w.changes : []).map((c) => li(`${c.date} · ${c.actor === 'user' ? 'you' : 'engine'}: ${c.reason}`)),
+  );
+  if (!w.changes.length) $('changes-list').replaceChildren(li('No changes this week.'));
+  await refreshRaces();
+}
+
+function renderSuggestion(w: PlanWeekView): void {
+  const box = $('suggestion');
+  const sug = w.suggestion;
+  box.classList.toggle('hidden', !sug);
+  if (!sug) return;
+  $('suggestion-reason').textContent = sug.reason;
+  $('suggestion-changes').replaceChildren(
+    ...sug.changes.map((c) => {
+      const el = document.createElement('li');
+      el.textContent = `${c.before} → ${c.after}`;
+      return el;
+    }),
+  );
+  $('suggestion-accept').onclick = async () => {
+    const r = await api.plan.acceptSuggestion(sug.id);
+    setMsg($('plan-msg'), r.message, r.ok);
+    await refreshPlan();
+  };
+  $('suggestion-dismiss').onclick = async () => {
+    const r = await api.plan.dismissSuggestion(sug.id);
+    setMsg($('plan-msg'), r.message, r.ok);
+    await refreshPlan();
+  };
+}
+
+function renderGrid(w: PlanWeekView): void {
+  const today = todayIso();
+  const grid = $('week-grid');
+  grid.replaceChildren(
+    ...DAYS.map((name, i) => {
+      const date = addDaysIso(w.weekStart, i);
+      const col = document.createElement('div');
+      col.className = `day${date === today ? ' today' : ''}`;
+      const h = document.createElement('h3');
+      h.textContent = `${name} ${date.slice(5)}`;
+      col.append(h);
+      for (const s of w.sessions.filter((x) => x.date === date)) col.append(sessionCard(s, w));
+      return col;
+    }),
+  );
+}
+
+function sessionCard(s: PlanSessionView, w: PlanWeekView): HTMLElement {
+  const el = document.createElement('div');
+  const inactive = s.status === 'skipped' || s.status === 'moved';
+  el.className = `sess ${s.sport}${inactive ? ' inactive' : ''}`;
+  const t = document.createElement('div');
+  t.className = 't';
+  t.textContent = `${s.isKey ? '★ ' : ''}${s.title}`;
+  if (s.status !== 'planned') {
+    const b = document.createElement('span');
+    b.className = 'badge';
+    b.textContent = s.status;
+    t.append(b);
+  }
+  if (s.source === 'manual') {
+    const b = document.createElement('span');
+    b.className = 'badge';
+    b.textContent = 'edited';
+    t.append(b);
+  }
+  const m = document.createElement('div');
+  m.className = 'm';
+  m.textContent = s.sport === 'rest' ? 'Rest' : `${s.durationMin} min · ${s.intensity} · load ${Math.round(s.estLoad)}`;
+  el.title = [s.purpose, s.structure ? [s.structure.warmup, s.structure.main, s.structure.cooldown].filter(Boolean).join(' / ') : '', Object.entries(s.targets).map(([k, v]) => `${k}: ${v}`).join(', ')]
+    .filter(Boolean)
+    .join('\n');
+  el.append(t, m);
+  if (s.notes.length) {
+    const n = document.createElement('div');
+    n.className = 'n';
+    n.textContent = s.notes.join(' ');
+    el.append(n);
+  }
+  if (!w.preview) el.append(actionsSelect(s, w));
+  return el;
+}
+
+function actionsSelect(s: PlanSessionView, w: PlanWeekView): HTMLSelectElement {
+  const sel = document.createElement('select');
+  const group = (label: string, opts: Array<[string, string]>) => {
+    const g = document.createElement('optgroup');
+    g.label = label;
+    for (const [v, t] of opts) g.append(new Option(t, v));
+    return g;
+  };
+  sel.append(new Option('Actions…', ''));
+  if (s.status === 'skipped') sel.append(new Option('Put back', 'unskip'));
+  else if (s.sport !== 'rest') sel.append(new Option('Skip', 'skip'));
+  sel.append(new Option('Make this day a rest day', 'rest'));
+  sel.append(group('Move to', DAYS.map((d, i) => [`move:${addDaysIso(w.weekStart, i)}`, d] as [string, string]).filter(([v]) => v !== `move:${s.date}`)));
+  const others = w.sessions.filter((o) => o.id !== s.id && o.status !== 'moved' && o.status !== 'skipped');
+  if (others.length) sel.append(group('Swap with', others.map((o) => [`swap:${o.id}`, `${DAYS[(new Date(`${o.date}T00:00:00Z`).getUTCDay() + 6) % 7]} · ${o.title}`] as [string, string])));
+  const lib = [...library].sort((a, b) => Number(b.sport === s.sport) - Number(a.sport === s.sport) || a.title.localeCompare(b.title));
+  sel.append(group('Change to', lib.map((l) => [`change:${l.key}`, `${l.isKey ? '★ ' : ''}${l.title}`] as [string, string])));
+  sel.addEventListener('change', async () => {
+    const [cmd, arg] = sel.value.split(':') as [string, string | undefined];
+    if (!cmd) return;
+    const r =
+      cmd === 'skip' ? await api.plan.skip(s.id)
+      : cmd === 'unskip' ? await api.plan.unskip(s.id)
+      : cmd === 'rest' ? await api.plan.makeRest(s.date)
+      : cmd === 'move' ? await api.plan.move(s.id, arg!)
+      : cmd === 'swap' ? await api.plan.swap(s.id, Number(arg))
+      : await api.plan.change(s.id, arg!);
+    setMsg($('plan-msg'), [r.message, ...r.warnings.map((x) => `⚠ ${x.message}`)].join(' '), r.ok);
+    await refreshPlan();
+  });
+  return sel;
+}
+
+$('week-prev').addEventListener('click', () => {
+  if (!planWeek) return;
+  planWeek = addDaysIso(planWeek, -7);
+  void refreshPlan();
+});
+$('week-next').addEventListener('click', () => {
+  if (!planWeek) return;
+  planWeek = addDaysIso(planWeek, 7);
+  void refreshPlan();
+});
+$('week-today').addEventListener('click', () => {
+  planWeek = null;
+  void refreshPlan();
+});
+
+const RACE_TYPES: Array<[string, string]> = [
+  ['sprint_tri', 'Sprint triathlon'], ['olympic_tri', 'Olympic triathlon'], ['5k', '5 km'], ['10k', '10 km'],
+  ['half_marathon', 'Half marathon'], ['marathon', 'Marathon'], ['gran_fondo', 'Gran fondo'], ['mtb', 'MTB race'], ['other', 'Other'],
+];
+$<HTMLSelectElement>('race-type').append(...RACE_TYPES.map(([v, t]) => new Option(t, v)));
+
+async function refreshRaces(): Promise<void> {
+  const races = await api.races.list();
+  const table = $('races-table');
+  const tbody = document.createElement('tbody');
+  for (const r of races) {
+    const tr = document.createElement('tr');
+    for (const v of [r.date, r.name, RACE_TYPES.find(([k]) => k === r.type)?.[1] ?? r.type, r.priority]) {
+      const td = document.createElement('td');
+      td.textContent = v;
+      tr.append(td);
+    }
+    const td = document.createElement('td');
+    const del = document.createElement('button');
+    del.className = 'ghost';
+    del.textContent = 'Remove';
+    del.addEventListener('click', async () => {
+      if (!confirm(`Remove ${r.name}?`)) return;
+      const res = await api.races.remove(r.id);
+      setMsg($('race-msg'), res.message, res.ok);
+      await refreshPlan();
+    });
+    td.append(del);
+    tr.append(td);
+    tbody.append(tr);
+  }
+  if (!races.length) {
+    const tr = document.createElement('tr');
+    const td = document.createElement('td');
+    td.textContent = 'No races yet — the plan is in maintain mode.';
+    td.className = 'muted';
+    tr.append(td);
+    tbody.append(tr);
+  }
+  table.replaceChildren(tbody);
+}
+
+$('race-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const res = await api.races.save({
+    name: $<HTMLInputElement>('race-name').value,
+    date: $<HTMLInputElement>('race-date').value,
+    type: $<HTMLSelectElement>('race-type').value as never,
+    priority: $<HTMLSelectElement>('race-priority').value as 'A',
+    notes: null,
+  });
+  setMsg($('race-msg'), res.message, res.ok);
+  if (res.ok) {
+    $<HTMLInputElement>('race-name').value = '';
+    await refreshPlan();
+  }
+});
+
+$('block-btn').addEventListener('click', async () => {
+  const weeks = await api.plan.block(4);
+  renderTable(
+    $('block-table'),
+    ['Week', 'Phase', 'Load', ...DAYS],
+    weeks.map((w) => [
+      `${w.weekStart}${w.deload ? ' (recovery)' : ''}`,
+      w.phase,
+      `${w.plannedLoad}${w.cap != null ? ` / ${w.cap}` : ''}`,
+      ...DAYS.map((_, i) =>
+        w.sessions
+          .filter((s) => s.date === addDaysIso(w.weekStart, i) && s.status !== 'skipped' && s.status !== 'moved')
+          .map((s) => `${s.isKey ? '★' : ''}${s.title}${s.durationMin ? ` ${s.durationMin}'` : ''}`)
+          .join(' + '),
+      ),
+    ]),
+  );
+});
 
 /* ---------- Data browser ---------- */
 const PAGE = 100;

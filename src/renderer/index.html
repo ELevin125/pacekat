@@ -14,6 +14,7 @@
       <h1>Pacekat <span class="muted">· debug views</span></h1>
       <nav>
         <button data-tab="readiness" class="tab active">Readiness</button>
+        <button data-tab="plan" class="tab">Plan</button>
         <button data-tab="activities" class="tab">Activities</button>
         <button data-tab="garmin" class="tab">Garmin</button>
         <button data-tab="sync" class="tab">Sync</button>
@@ -38,6 +39,60 @@
         <div class="tile wide">
           <h2>Last 30 days</h2>
           <div class="scroll"><table id="readiness-table"></table></div>
+        </div>
+      </section>
+
+      <section id="tab-plan" class="panel hidden">
+        <div id="suggestion" class="tile wide suggestion hidden">
+          <h2>Suggestion for today</h2>
+          <p id="suggestion-reason"></p>
+          <ul id="suggestion-changes"></ul>
+          <div class="row">
+            <button id="suggestion-accept">Accept</button>
+            <button id="suggestion-dismiss" class="ghost">Keep my plan</button>
+          </div>
+        </div>
+        <div class="tile wide">
+          <div class="row spread">
+            <div class="row">
+              <button id="week-prev" class="ghost">‹</button>
+              <h2 id="week-title" class="nomargin">Week</h2>
+              <button id="week-next" class="ghost">›</button>
+              <button id="week-today" class="ghost">This week</button>
+            </div>
+            <span id="week-meta" class="muted"></span>
+          </div>
+          <ul id="week-notes" class="notes"></ul>
+          <ul id="week-warnings" class="errors"></ul>
+          <p id="plan-msg" class="msg"></p>
+          <div id="week-grid" class="week-grid"></div>
+        </div>
+        <div class="tile">
+          <h2>Races</h2>
+          <table id="races-table"></table>
+          <form id="race-form" class="race-form">
+            <input id="race-name" placeholder="Race name" />
+            <input id="race-date" type="date" />
+            <select id="race-type"></select>
+            <select id="race-priority">
+              <option value="A">A — build toward it</option>
+              <option value="B">B — mini-taper</option>
+              <option value="C">C — training race</option>
+            </select>
+            <button type="submit">Add race</button>
+          </form>
+          <p id="race-msg" class="msg"></p>
+        </div>
+        <div class="tile">
+          <h2>Why did my plan change?</h2>
+          <ul id="changes-list" class="changes"></ul>
+        </div>
+        <div class="tile wide">
+          <div class="row spread">
+            <h2 class="nomargin">Next 4 weeks</h2>
+            <button id="block-btn" class="ghost">Show preview</button>
+          </div>
+          <div class="scroll"><table id="block-table"></table></div>
         </div>
       </section>
 

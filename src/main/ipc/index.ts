@@ -7,6 +7,8 @@ import { staticEndpoints } from '../garmin/endpoints';
 import { GARMIN_KEY, GARMIN_TOKEN, normaliseGarminKey, type SecretStore } from '../secrets';
 import { SyncService } from '../sync';
 import { registerMetricsIpc } from './metrics';
+import { registerPlanIpc } from './plan';
+import { PlanService } from '../plan/service';
 import { ensureDerived } from '../sync/derive';
 
 export interface IpcContext {
@@ -22,7 +24,10 @@ export interface IpcContext {
 /** Wires the typed API (src/shared/api.ts) to main-process services. */
 export function registerIpc(ctx: IpcContext): { sync: () => SyncService | null; runSync: (full?: boolean) => Promise<void> } {
   const { db, secrets } = ctx;
-  const recomputeMetrics = registerMetricsIpc({ db, fitDir: ctx.fitDir, timeZone: ctx.timeZone, log: ctx.log });
+  const plan = new PlanService(db);
+  const recomputeMetrics = registerMetricsIpc({ db, fitDir: ctx.fitDir, timeZone: ctx.timeZone, log: ctx.log, afterRecompute: (today) => plan.afterMetrics(today) });
+  // Plan edits change planned load only; matching/adaptation re-run on the next recompute.
+  registerPlanIpc(plan, ctx.timeZone, () => {});
   // Bring derived data and metrics up to date on start (cheap; picks up mapping/threshold changes after an update).
   try {
     const n = ensureDerived(db);

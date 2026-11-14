@@ -1,7 +1,7 @@
 import { ipcMain } from 'electron';
 import { IPC, type ActivityItem, type DailyMetric, type MetricsSummary, type ReadinessDay, type Result } from '../../shared/api';
 import type { DB } from '../db';
-import { addDays, localToday } from '../garmin/dates';
+import { addDays, localToday } from '../util/dates';
 import { recomputeMetrics } from '../metrics/recompute';
 
 export interface MetricsIpcContext {
@@ -9,6 +9,8 @@ export interface MetricsIpcContext {
   fitDir: string;
   timeZone: string;
   log: (msg: string) => void;
+  /** Runs after every recompute (e.g. the plan service's matching and adaptation). */
+  afterRecompute?: (today: string) => void;
 }
 
 /** Registers metrics + activity handlers. Returns the recompute function for sync/startup. */
@@ -18,7 +20,13 @@ export function registerMetricsIpc(ctx: MetricsIpcContext): () => MetricsSummary
 
   const recompute = (): MetricsSummary => {
     const t0 = Date.now();
-    last = recomputeMetrics(db, ctx.fitDir, localToday(ctx.timeZone));
+    const today = localToday(ctx.timeZone);
+    last = recomputeMetrics(db, ctx.fitDir, today);
+    try {
+      ctx.afterRecompute?.(today);
+    } catch (err) {
+      ctx.log(`plan update failed: ${(err as Error).message}`);
+    }
     ctx.log(`metrics recomputed in ${Date.now() - t0} ms (${last.activities} activities, k=${last.k.toFixed(2)}${last.kCalibrated ? '' : ' default'})`);
     return last;
   };

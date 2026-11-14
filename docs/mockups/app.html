@@ -1,0 +1,632 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Pacekat M4 mockup</title>
+<!--
+  Static M4 mockup: Today, Week and the activity drawer.
+  Data is made up but shaped like src/shared/api.ts (ReadinessDay, PlanWeekView, ActivityItem).
+  Scenario: Saturday 14 Nov 2026, build phase, HRV dipped -> "Keep it easy" + a downgrade suggestion.
+  Tokens are the ones from docs/ui.md and are meant to be lifted into the real renderer as-is.
+-->
+<style>
+:root {
+  --bg: #0b0d10;
+  --tile: #15181d;
+  --tile-2: #1b1f25;
+  --border: #22262d;
+  --text: #e8eaed;
+  --text-2: #9aa0a6;
+  --text-3: #6b7178;
+  --warn: #ff5a5f;
+  --sport-swim: #3da5ff;
+  --sport-bike: #ff8a3d;
+  --sport-run: #b8f04a;
+  --sport-strength: #a78bfa;
+  --sport-other: #8a9099;
+  --radius: 16px;
+  --radius-sm: 10px;
+  --gap: 12px;
+  --rail: 64px;
+  --font: Inter, "Inter Variable", "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body {
+  background: var(--bg); color: var(--text);
+  font: 14px/1.45 var(--font);
+  font-variant-numeric: tabular-nums;
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+}
+button { font: inherit; color: inherit; cursor: pointer; }
+.app { display: grid; grid-template-columns: var(--rail) 1fr; height: 100vh; min-width: 1100px; min-height: 700px; }
+
+/* ---------- rail ---------- */
+.rail {
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  padding: 16px 0; border-right: 1px solid var(--border);
+}
+.logo { width: 32px; height: 32px; border-radius: 10px; background: var(--text); color: var(--bg);
+  display: grid; place-items: center; font-weight: 700; font-size: 15px; margin-bottom: 14px; }
+.rail-btn { width: 44px; height: 44px; border-radius: 12px; border: 0; background: none; color: var(--text-3);
+  display: grid; place-items: center; position: relative; }
+.rail-btn:hover { color: var(--text); background: var(--tile); }
+.rail-btn.active { color: var(--text); background: var(--tile-2); }
+.rail-btn.active::before { content: ""; position: absolute; left: -10px; top: 12px; bottom: 12px; width: 3px; border-radius: 2px; background: var(--text); }
+.rail-btn svg { width: 20px; height: 20px; }
+.rail-btn .tip { position: absolute; left: 54px; background: var(--tile-2); border: 1px solid var(--border); padding: 4px 8px;
+  border-radius: 8px; font-size: 12px; white-space: nowrap; color: var(--text); opacity: 0; pointer-events: none; transition: opacity .12s; z-index: 5; }
+.rail-btn:hover .tip { opacity: 1; }
+.rail-spacer { flex: 1; }
+.sync-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--text-2); }
+
+/* ---------- page ---------- */
+.page { display: none; height: 100vh; padding: 20px 24px 14px; flex-direction: column; gap: var(--gap); min-width: 0; }
+.page.active { display: flex; }
+.page-head { display: flex; align-items: baseline; gap: 14px; }
+.page-head h1 { font-size: 22px; font-weight: 600; margin: 0; letter-spacing: -0.01em; }
+.page-head .sub { color: var(--text-2); }
+.page-head .right { margin-left: auto; display: flex; align-items: center; gap: 10px; color: var(--text-2); font-size: 13px; }
+.link { background: none; border: 0; padding: 0; color: var(--text); text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--text-3); }
+.link:hover { text-decoration-color: var(--text); }
+
+.tile { background: var(--tile); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px 20px; min-width: 0; min-height: 0; position: relative; overflow: hidden; }
+.label { font-size: 12px; color: var(--text-2); text-transform: uppercase; letter-spacing: .06em; font-weight: 500; }
+.big { font-size: 64px; font-weight: 300; letter-spacing: -0.03em; line-height: 1; }
+.num { font-weight: 300; letter-spacing: -0.02em; }
+.muted { color: var(--text-2); }
+.faint { color: var(--text-3); }
+
+.chip { display: inline-flex; align-items: center; gap: 6px; padding: 3px 9px; border-radius: 999px; font-size: 12px;
+  border: 1px solid var(--border); color: var(--text-2); white-space: nowrap; }
+.chip .dot { width: 7px; height: 7px; border-radius: 50%; }
+.btn { border: 1px solid var(--border); background: var(--tile-2); border-radius: var(--radius-sm); padding: 8px 14px; }
+.btn:hover { border-color: var(--text-3); }
+.btn.primary { background: var(--text); color: var(--bg); border-color: var(--text); font-weight: 500; }
+
+/* sport helpers */
+.s-swim { --c: var(--sport-swim); }
+.s-bike { --c: var(--sport-bike); }
+.s-run { --c: var(--sport-run); }
+.s-strength { --c: var(--sport-strength); }
+.s-other { --c: var(--sport-other); }
+.s-commute { --c: var(--sport-bike); --commute: 1; }
+.sport-ico { width: 18px; height: 18px; color: var(--c); flex: none; }
+
+/* ---------- TODAY bento ---------- */
+.bento { flex: 1; display: grid; gap: var(--gap); min-height: 0;
+  grid-template-columns: repeat(12, 1fr);
+  grid-template-rows: minmax(0, 1.15fr) minmax(0, 1fr) auto; }
+.t-ready { grid-column: 1 / 6; grid-row: 1 / 3; display: flex; flex-direction: column; }
+.t-session { grid-column: 6 / 10; grid-row: 1; }
+.t-race { grid-column: 10 / 13; grid-row: 1; }
+.t-activity { grid-column: 6 / 10; grid-row: 2; cursor: pointer; }
+.t-activity:hover { border-color: var(--text-3); }
+.t-brief { grid-column: 10 / 13; grid-row: 2; }
+.t-week { grid-column: 1 / 13; grid-row: 3; }
+
+/* readiness */
+.verdict { display: flex; align-items: flex-end; justify-content: space-between; flex-wrap: wrap; gap: 12px 16px; margin-top: 10px; }
+.verdict .big { font-size: clamp(44px, 3.8vw, 72px); }
+.meter { display: flex; gap: 6px; align-items: flex-end; }
+.meter span { width: 40px; height: 10px; border-radius: 5px; background: var(--border); }
+.meter-labels { display: flex; gap: 6px; font-size: 11px; color: var(--text-3); margin-top: 6px; }
+.meter-labels span { width: 40px; text-align: center; }
+.meter span.on { background: var(--text); }
+.meter-labels span.on { color: var(--text); }
+.ready-sum { color: var(--text-2); margin: 14px 0 4px; font-size: 15px; max-width: 46ch; }
+.factors { list-style: none; padding: 0; margin: 10px 0 0; display: flex; flex-direction: column; flex: 1; min-height: 0; }
+.factors li { display: grid; grid-template-columns: 22px 120px 64px 1fr; align-items: center; gap: 10px; padding: 9px 0; border-top: 1px solid var(--border); }
+.factors .name { color: var(--text-2); }
+.factors .val { font-size: 18px; font-weight: 300; text-align: right; }
+.factors .why { color: var(--text-2); font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mark { width: 20px; height: 20px; border-radius: 50%; display: grid; place-items: center; font-size: 11px; font-weight: 700; }
+.mark.ok { border: 1.5px solid var(--text-3); color: var(--text-2); }
+.mark.watch { background: var(--text); color: var(--bg); }
+.mark.red { background: var(--warn); color: var(--bg); }
+.mark.missing { border: 1.5px dashed var(--text-3); color: var(--text-3); }
+.suggest { margin-top: 12px; border: 1px solid var(--text-3); border-radius: 12px; padding: 12px 14px; background: var(--tile-2); display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center; }
+.suggest .what { flex: 1 1 260px; }
+.suggest .acts { display: flex; gap: 8px; margin-left: auto; }
+.suggest .what b { font-weight: 600; }
+.suggest .what .muted { font-size: 13px; }
+
+/* session */
+.sess-head { display: flex; align-items: center; gap: 8px; }
+.sess-bar { position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--c); }
+.sess-title { font-size: clamp(22px, 1.8vw, 28px); font-weight: 400; letter-spacing: -0.02em; margin: 10px 0 4px; }
+.sess-meta { display: flex; gap: 22px; margin-top: 12px; }
+.sess-meta div { display: flex; flex-direction: column; white-space: nowrap; }
+.sess-meta .v { font-size: clamp(20px, 1.6vw, 26px); font-weight: 300; letter-spacing: -0.02em; }
+.sess-meta .k { font-size: 12px; color: var(--text-2); }
+.sess-purpose { color: var(--text-2); margin-top: 12px; }
+.sess-structure { margin-top: 10px; font-size: 13px; color: var(--text-2); display: grid; grid-template-columns: 76px 1fr; gap: 3px 10px; }
+.sess-structure b { color: var(--text-3); font-weight: 500; }
+.t-session, .t-brief, .t-activity { display: flex; flex-direction: column; }
+.sess-also { margin-top: auto; display: flex; align-items: center; gap: 8px; color: var(--text-2); font-size: 13px; padding-top: 10px; border-top: 1px solid var(--border); }
+.sess-old { text-decoration: line-through; color: var(--text-3); font-size: 13px; }
+
+/* race */
+.race-days { font-size: clamp(56px, 5vw, 84px); font-weight: 200; letter-spacing: -0.04em; line-height: 1; margin-top: 14px; }
+.race-days small { font-size: 18px; color: var(--text-2); font-weight: 400; letter-spacing: 0; margin-left: 6px; }
+.phase-line { display: flex; gap: 3px; margin-top: 18px; }
+.phase-line span { height: 6px; border-radius: 3px; background: var(--border); }
+.phase-line span.past { background: var(--text-3); }
+.phase-line span.now { background: var(--text); }
+.phase-names { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-3); margin-top: 6px; }
+
+/* activity */
+.act-nums { display: flex; gap: 22px; margin-top: 12px; }
+.act-nums div { display: flex; flex-direction: column; white-space: nowrap; }
+.act-nums .v { font-size: clamp(20px, 1.6vw, 26px); font-weight: 300; letter-spacing: -0.02em; }
+.act-nums .k { font-size: 12px; color: var(--text-2); }
+.zones { display: flex; height: 8px; border-radius: 4px; overflow: hidden; gap: 2px; margin: 14px 0 6px; }
+.zones span { background: var(--c); }
+.zone-key { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-3); }
+.act-sum { color: var(--text-2); margin-top: 10px; font-size: 13px; }
+.rpe-ask { margin-left: auto; padding: 4px 10px; font-size: 12px; }
+
+/* brief */
+.brief-text { font-size: clamp(14px, 1vw, 16px); line-height: 1.55; margin-top: 12px; color: var(--text); }
+.brief-src { font-size: 12px; color: var(--text-3); margin-top: auto; padding-top: 8px; }
+
+/* compact: 1080p laptop at 125 % scaling, or the 1100x700 minimum */
+@media (max-width: 1440px), (max-height: 860px) {
+  .page { padding: 14px 18px 10px; }
+  .tile { padding: 14px 16px; }
+  .factors { display: grid; grid-template-columns: 1fr 1fr; column-gap: 18px; align-content: start; }
+  .factors li { grid-template-columns: 22px 1fr auto; padding: 6px 0; }
+  .factors .why { display: none; }
+  .ready-sum { font-size: 14px; margin: 8px 0 0; }
+  .sess-purpose { font-size: 13px; }
+  .sess-structure { display: none; }
+  .act-sum { display: none; }
+  .strip-foot { display: none; }
+  .day { padding: 8px 10px; }
+}
+
+/* week strip */
+.strip { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; margin-top: 10px; }
+.day { border-radius: 12px; padding: 10px 12px; background: var(--tile-2); border: 1px solid transparent; display: flex; flex-direction: column; gap: 6px; }
+.day.today { border-color: var(--text); }
+.day .dname { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-2); }
+.day.today .dname { color: var(--text); }
+.pill { height: 22px; border-radius: 6px; display: flex; align-items: center; gap: 6px; padding: 0 8px; font-size: 12px;
+  background: color-mix(in srgb, var(--c) 18%, transparent); color: var(--text); white-space: nowrap; overflow: hidden; }
+.pill::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--c); flex: none; }
+.pill.done { background: var(--c); color: #0b0d10; font-weight: 500; }
+.pill.done::before { background: #0b0d10; }
+.pill.commute.done { background: color-mix(in srgb, var(--c) 55%, var(--tile-2)); }
+.pill.planned { background: transparent; box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c) 60%, transparent); }
+.pill.missed { background: transparent; box-shadow: inset 0 0 0 1px var(--border); color: var(--text-3); text-decoration: line-through; }
+.pill.missed::before { background: var(--text-3); }
+.pill.rest { background: transparent; color: var(--text-3); }
+.pill.rest::before { display: none; }
+.strip-foot { display: flex; gap: 18px; margin-top: 10px; font-size: 12px; color: var(--text-2); align-items: center; }
+.legend { display: flex; gap: 14px; margin-left: auto; }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.legend i { width: 14px; height: 10px; border-radius: 3px; display: inline-block; }
+
+.statusbar { display: flex; gap: 10px; font-size: 12px; color: var(--text-3); align-items: center; }
+
+/* ---------- WEEK ---------- */
+.week-head { display: flex; align-items: center; gap: 12px; }
+.arrow { width: 32px; height: 32px; border-radius: 10px; border: 1px solid var(--border); background: var(--tile); display: grid; place-items: center; }
+.week-cols { flex: 1; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: var(--gap); min-height: 0; }
+.wcol { display: flex; flex-direction: column; gap: 8px; min-height: 0; }
+.wcol-head { display: flex; align-items: baseline; justify-content: space-between; padding: 0 4px; }
+.wcol-head .d { font-weight: 600; }
+.wcol-head .n { color: var(--text-2); font-size: 13px; }
+.wcol.today .wcol-head .d::after { content: " · today"; color: var(--text-2); font-weight: 400; }
+.card { background: var(--tile); border: 1px solid var(--border); border-radius: 14px; padding: 12px 12px 10px 14px; position: relative; overflow: visible; }
+.card::before { content: ""; position: absolute; left: 0; top: 10px; bottom: 10px; width: 3px; border-radius: 2px; background: var(--c); }
+.wcol.today .card { border-color: var(--text-3); }
+.card .row1 { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-2); }
+.card .t { font-weight: 500; margin: 6px 0 2px; font-size: 14px; }
+.card .meta { font-size: 12px; color: var(--text-2); }
+.card .state { margin-top: 8px; font-size: 12px; display: flex; align-items: center; gap: 6px; }
+.card .state.done { color: var(--text); }
+.card .state.missed { color: var(--text-3); }
+.card.missed { opacity: .6; }
+.card.rest-card { background: none; border-style: dashed; color: var(--text-3); }
+.card.rest-card::before { display: none; }
+.kebab { position: absolute; right: 6px; top: 6px; width: 26px; height: 26px; border-radius: 8px; border: 0; background: none; color: var(--text-3); display: grid; place-items: center; }
+.kebab:hover { background: var(--tile-2); color: var(--text); }
+.key-tag { font-size: 10px; letter-spacing: .06em; text-transform: uppercase; border: 1px solid var(--text-3); color: var(--text-2); border-radius: 4px; padding: 0 4px; }
+.why { font-size: 12px; margin-top: 6px; }
+.menu { position: absolute; right: 6px; top: 34px; z-index: 10; background: var(--tile-2); border: 1px solid var(--border); border-radius: 12px; padding: 6px; width: 190px;
+  box-shadow: 0 12px 32px rgba(0,0,0,.5); display: none; }
+.menu.open { display: block; }
+.menu button { display: block; width: 100%; text-align: left; background: none; border: 0; padding: 7px 10px; border-radius: 8px; font-size: 13px; }
+.menu button:hover { background: var(--tile); }
+.menu hr { border: 0; border-top: 1px solid var(--border); margin: 4px 0; }
+.warnbox { border: 1px solid var(--warn); border-radius: 12px; padding: 8px 12px; font-size: 12px; color: var(--text); display: flex; gap: 8px; align-items: flex-start; }
+.warnbox b { color: var(--warn); }
+
+.dayfoot { margin-top: auto; background: var(--tile); border: 1px solid var(--border); border-radius: 14px; padding: 10px 12px; font-size: 12px; color: var(--text-2); display: flex; flex-direction: column; gap: 6px; }
+.dayfoot .rv { color: var(--text); font-size: 13px; }
+.dayfoot .lb { height: 6px; border-radius: 3px; background: var(--border); position: relative; }
+.dayfoot .lb span { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 3px; background: var(--text-2); }
+.dayfoot .lb i { position: absolute; top: -3px; bottom: -3px; width: 2px; background: var(--text); }
+.week-bottom { display: grid; grid-template-columns: 2fr 1fr; gap: var(--gap); }
+.totals { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
+.trow { display: grid; grid-template-columns: 80px 1fr 110px; align-items: center; gap: 12px; font-size: 13px; }
+.tbar { height: 10px; border-radius: 5px; background: var(--border); position: relative; }
+.tbar span { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 5px; background: var(--c); }
+.tbar i { position: absolute; top: -3px; bottom: -3px; width: 2px; background: var(--text-2); border-radius: 1px; }
+.trow .r { text-align: right; color: var(--text-2); }
+.changes { list-style: none; padding: 0; margin: 10px 0 0; font-size: 13px; }
+.changes li { padding: 7px 0; border-top: 1px solid var(--border); display: grid; grid-template-columns: 54px 1fr; gap: 10px; }
+.changes .who { color: var(--text-3); font-size: 12px; }
+
+/* ---------- drawer ---------- */
+.scrim { position: fixed; inset: 0; background: rgba(0,0,0,.45); opacity: 0; pointer-events: none; transition: opacity .18s; z-index: 20; }
+.drawer { position: fixed; right: 0; top: 0; bottom: 0; width: 480px; background: var(--tile); border-left: 1px solid var(--border);
+  transform: translateX(100%); transition: transform .22s ease; z-index: 21; padding: 22px 24px; overflow-y: auto; }
+.drawer-open .scrim { opacity: 1; pointer-events: auto; }
+.drawer-open .drawer { transform: none; }
+.drawer h2 { font-size: 22px; font-weight: 500; margin: 8px 0 2px; letter-spacing: -0.01em; }
+.close { position: absolute; right: 16px; top: 16px; width: 32px; height: 32px; border-radius: 10px; border: 1px solid var(--border); background: none; }
+.dgrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 18px; }
+.dgrid div { background: var(--tile-2); border-radius: 12px; padding: 10px 12px; }
+.dgrid .v { font-size: 22px; font-weight: 300; white-space: nowrap; }
+.dgrid .k { font-size: 12px; color: var(--text-2); }
+.section { margin-top: 22px; }
+.section h3 { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--text-2); font-weight: 500; margin: 0 0 10px; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th { text-align: right; color: var(--text-3); font-weight: 500; padding: 4px 6px; }
+td { text-align: right; padding: 6px; border-top: 1px solid var(--border); }
+th:first-child, td:first-child { text-align: left; }
+.zrow { display: grid; grid-template-columns: 30px 1fr 50px; align-items: center; gap: 10px; font-size: 13px; margin-bottom: 6px; }
+.zrow .zb { height: 8px; border-radius: 4px; background: var(--c); }
+.rpe { display: flex; gap: 4px; }
+.rpe button { width: 34px; height: 34px; border-radius: 9px; border: 1px solid var(--border); background: var(--tile-2); }
+.rpe button.on { background: var(--text); color: var(--bg); border-color: var(--text); }
+.pvd { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 13px; }
+.pvd div { background: var(--tile-2); border-radius: 12px; padding: 10px 12px; }
+.toggle { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; background: var(--tile-2); border-radius: 12px; font-size: 13px; }
+.sw { width: 34px; height: 20px; border-radius: 10px; background: var(--border); position: relative; }
+.sw::after { content: ""; position: absolute; left: 3px; top: 3px; width: 14px; height: 14px; border-radius: 50%; background: var(--text-2); }
+
+/* placeholder pages */
+.placeholder { flex: 1; display: grid; place-items: center; color: var(--text-3); border: 1px dashed var(--border); border-radius: var(--radius); }
+
+/* mockup-only switcher */
+.mock-note { position: fixed; right: 14px; bottom: 12px; font-size: 11px; color: var(--text-3); z-index: 30; }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <symbol id="i-today" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></symbol>
+    <symbol id="i-week" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/></symbol>
+    <symbol id="i-trends" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l5-5 4 4 8-9"/><path d="M15 7h5v5"/></symbol>
+    <symbol id="i-settings" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></symbol>
+    <symbol id="i-swim" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 16c2 0 2-1.5 4-1.5S8 16 10 16s2-1.5 4-1.5 2 1.5 4 1.5 2-1.5 4-1.5"/><path d="M2 20c2 0 2-1.5 4-1.5S8 20 10 20s2-1.5 4-1.5 2 1.5 4 1.5 2-1.5 4-1.5"/><circle cx="16" cy="6" r="2"/><path d="M7 12l4-4 3 3"/></symbol>
+    <symbol id="i-bike" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5.5" cy="16.5" r="3.5"/><circle cx="18.5" cy="16.5" r="3.5"/><path d="M5.5 16.5L9 9h6l3.5 7.5M9 9l3 7.5h-6.5M14 6h2.5"/></symbol>
+    <symbol id="i-run" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="15" cy="4.5" r="2"/><path d="M6 20l3-5 3 2 1-5 3 3h3M9 10l3-2 3 1"/></symbol>
+    <symbol id="i-strength" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 7v10M18 7v10M3 10v4M21 10v4M6 12h12"/></symbol>
+    <symbol id="i-more" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="12" cy="19" r="1.7"/></symbol>
+  </defs>
+</svg>
+
+<div class="app" id="app">
+  <nav class="rail">
+    <div class="logo">P</div>
+    <button class="rail-btn active" data-page="today"><svg><use href="#i-today"/></svg><span class="tip">Today</span></button>
+    <button class="rail-btn" data-page="week"><svg><use href="#i-week"/></svg><span class="tip">Week</span></button>
+    <button class="rail-btn" data-page="trends"><svg><use href="#i-trends"/></svg><span class="tip">Trends (M5)</span></button>
+    <button class="rail-btn" data-page="settings"><svg><use href="#i-settings"/></svg><span class="tip">Races &amp; Settings</span></button>
+    <div class="rail-spacer"></div>
+    <span class="sync-dot" title="Synced 07:12"></span>
+  </nav>
+
+  <!-- ===================== TODAY ===================== -->
+  <main class="page active" id="page-today">
+    <div class="page-head">
+      <h1>Saturday 14 November</h1>
+      <span class="sub">Build · week 3 of 4</span>
+      <div class="right">Synced 07:12 · <button class="link">Sync now</button></div>
+    </div>
+
+    <div class="bento">
+      <!-- Readiness hero -->
+      <section class="tile t-ready">
+        <div class="label">Readiness</div>
+        <div class="verdict">
+          <div class="big">Keep it easy</div>
+          <div>
+            <div class="meter"><span></span><span class="on"></span><span></span></div>
+            <div class="meter-labels"><span>Rest</span><span class="on">Easy</span><span>Go</span></div>
+          </div>
+        </div>
+        <p class="ready-sum">HRV is under your normal range and yesterday was bigger than a usual day. Everything else looks fine.</p>
+        <ul class="factors">
+          <li title="41 ms is below your normal range (46+)."><span class="mark watch">!</span><span class="name">HRV</span><span class="val">41</span><span class="why">41 ms is below your normal range (46+).</span></li>
+          <li title="Resting HR 52 is normal for you."><span class="mark ok">✓</span><span class="name">Resting HR</span><span class="val">52</span><span class="why">Resting HR 52 is normal for you.</span></li>
+          <li title="Slept well (7 h 20 m, score 78)."><span class="mark ok">✓</span><span class="name">Sleep</span><span class="val">78</span><span class="why">Slept well (7 h 20 m, score 78).</span></li>
+          <li title="Body Battery 64 at wake-up."><span class="mark ok">✓</span><span class="name">Body Battery</span><span class="val">64</span><span class="why">Body Battery 64 at wake-up.</span></li>
+          <li title="Load ratio 1.12 is in a safe range."><span class="mark ok">✓</span><span class="name">Load ratio</span><span class="val">1.12</span><span class="why">Load ratio 1.12 is in a safe range.</span></li>
+          <li title="Yesterday was a big day (1.6× a usual training day)."><span class="mark watch">!</span><span class="name">Yesterday</span><span class="val">1.6×</span><span class="why">Yesterday was a big day (1.6× a usual training day).</span></li>
+        </ul>
+        <div class="suggest" id="suggest">
+          <div class="what">
+            <div><b>Swap today's tempo parkrun for an easy one?</b></div>
+            <div class="muted">HRV is low, so a hard effort today costs more than it gives. Your key run moves to the easy version.</div>
+          </div>
+          <div class="acts">
+            <button class="btn" onclick="dismissSuggestion()">Keep plan</button>
+            <button class="btn primary" onclick="acceptSuggestion()">Make it easy</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Today's session -->
+      <section class="tile t-session s-run">
+        <div class="sess-bar"></div>
+        <div class="sess-head">
+          <svg class="sport-ico"><use href="#i-run"/></svg>
+          <span class="label">Today · run</span>
+          <span class="key-tag" id="sess-key">Key</span>
+        </div>
+        <div class="sess-title" id="sess-title">parkrun (tempo)</div>
+        <div class="sess-old" id="sess-old" hidden>was: parkrun (tempo)</div>
+        <div class="sess-meta">
+          <div><span class="v" id="sess-dur">40 min</span><span class="k">duration</span></div>
+          <div><span class="v" id="sess-hr">Z3</span><span class="k">heart rate</span></div>
+          <div><span class="v" id="sess-pace">4:55</span><span class="k" id="sess-pace-k">/km target</span></div>
+        </div>
+        <div class="sess-purpose" id="sess-purpose">Sustained effort just under threshold. Builds the speed you'll hold on the run leg.</div>
+        <div class="sess-also s-swim">
+          <svg class="sport-ico"><use href="#i-swim"/></svg>
+          <span>Later: <b style="color:var(--text);font-weight:500">Endurance swim</b> · 40 min · CSS + 8–10 s/100 m</span>
+        </div>
+      </section>
+
+      <!-- Next race -->
+      <section class="tile t-race">
+        <div class="label">Next race · A</div>
+        <div style="margin-top:8px;font-size:16px">Olympic triathlon</div>
+        <div class="race-days">41<small>days</small></div>
+        <div class="muted" style="margin-top:6px;font-size:13px">Sun 27 Dec · build phase</div>
+        <div class="phase-line">
+          <span class="past" style="flex:4"></span><span class="now" style="flex:3"></span><span style="flex:2"></span><span style="flex:1"></span>
+        </div>
+        <div class="phase-names"><span>Base</span><span>Build</span><span>Peak</span><span>Taper</span></div>
+      </section>
+
+      <!-- Latest activity -->
+      <section class="tile t-activity s-swim" onclick="openDrawer()">
+        <div class="sess-head">
+          <svg class="sport-ico"><use href="#i-swim"/></svg>
+          <span class="label">Latest · yesterday 17:40</span>
+          <button class="btn rpe-ask" onclick="event.stopPropagation();openDrawer()">Add RPE</button>
+        </div>
+        <div style="font-size:20px;margin-top:8px">Easy swim</div>
+        <div class="act-nums">
+          <div><span class="v">1 600</span><span class="k">m</span></div>
+          <div><span class="v">31:12</span><span class="k">time</span></div>
+          <div><span class="v">1:57</span><span class="k">/100 m</span></div>
+          <div><span class="v">132</span><span class="k">avg HR</span></div>
+        </div>
+        <div class="zones"><span style="flex:18;opacity:.35"></span><span style="flex:52;opacity:.55"></span><span style="flex:24;opacity:.8"></span><span style="flex:6"></span><span style="flex:0"></span></div>
+        <div class="zone-key"><span>HR zones Z1 → Z5</span><span>mostly Z2</span></div>
+        <div class="act-sum">Steady 1.6 km at 1:57 /100 m, mostly in zone 2 as planned. That's done for Friday.</div>
+      </section>
+
+      <!-- Daily brief -->
+      <section class="tile t-brief">
+        <div class="label">Daily brief</div>
+        <div class="brief-text">You're a little under-recovered after a big Friday. Run today's parkrun at a chatty pace and save the effort for next week. Swim later is easy aerobic work.</div>
+        <div class="brief-src">Template summary · AI off</div>
+      </section>
+
+      <!-- Week strip -->
+      <section class="tile t-week">
+        <div style="display:flex;align-items:baseline;gap:12px">
+          <span class="label">This week</span>
+          <span class="muted" style="font-size:13px">5 of 9 sessions done · 4 h 50 of 7 h 30</span>
+          <button class="link" style="margin-left:auto;font-size:13px" onclick="go('week')">Open week</button>
+        </div>
+        <div class="strip">
+          <div class="day"><div class="dname"><span>Mon</span><span>9</span></div><div class="pill done commute s-commute">Commute</div></div>
+          <div class="day"><div class="dname"><span>Tue</span><span>10</span></div><div class="pill done s-strength">Upper + abs</div><div class="pill done s-swim">CSS intervals</div></div>
+          <div class="day"><div class="dname"><span>Wed</span><span>11</span></div><div class="pill done commute s-commute">Commute</div></div>
+          <div class="day"><div class="dname"><span>Thu</span><span>12</span></div><div class="pill missed s-strength">Lower + abs</div></div>
+          <div class="day"><div class="dname"><span>Fri</span><span>13</span></div><div class="pill done s-swim">Easy swim</div></div>
+          <div class="day today"><div class="dname"><span>Sat</span><span>14</span></div><div class="pill planned s-run" id="strip-run">parkrun tempo</div><div class="pill planned s-swim">Endurance swim</div></div>
+          <div class="day"><div class="dname"><span>Sun</span><span>15</span></div><div class="pill planned s-run">Long run</div></div>
+        </div>
+        <div class="strip-foot">
+          <span>Filled = done · outline = planned · struck = missed</span>
+          <span class="legend">
+            <span><i style="background:var(--sport-swim)"></i>Swim</span>
+            <span><i style="background:var(--sport-bike)"></i>Bike</span>
+            <span><i style="background:var(--sport-run)"></i>Run</span>
+            <span><i style="background:var(--sport-strength)"></i>Strength</span>
+          </span>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <!-- ===================== WEEK ===================== -->
+  <main class="page" id="page-week">
+    <div class="page-head week-head">
+      <button class="arrow" title="Previous week">‹</button>
+      <h1>9 – 15 November</h1>
+      <button class="arrow" title="Next week">›</button>
+      <span class="chip">Build</span>
+      <span class="chip">Week 3 of 4</span>
+      <span class="chip">Olympic tri in 41 days</span>
+      <div class="right">Planned load 612 · cap 640</div>
+    </div>
+
+    <div class="week-cols">
+      <div class="wcol">
+        <div class="wcol-head"><span class="d">Mon</span><span class="n">9</span></div>
+        <div class="card s-commute"><div class="row1"><svg class="sport-ico" style="width:14px;height:14px"><use href="#i-bike"/></svg>Commute · fixed</div><div class="t">Commute ride</div><div class="meta">40 min · Z1–Z2</div><div class="state done">✓ Done · 42 min</div></div>
+        <div class="dayfoot"><span class="rv">Go</span><div class="lb"><span style="width:45%"></span><i style="left:46%"></i></div><span>Load 58 of 60</span></div>
+      </div>
+      <div class="wcol">
+        <div class="wcol-head"><span class="d">Tue</span><span class="n">10</span></div>
+        <div class="card s-strength"><div class="row1"><svg class="sport-ico" style="width:14px;height:14px"><use href="#i-strength"/></svg>Strength</div><div class="t">Upper body + abs</div><div class="meta">45 min · RPE 6–7</div><div class="state done">✓ Done · 48 min</div></div>
+        <div class="card s-swim"><div class="row1"><svg class="sport-ico" style="width:14px;height:14px"><use href="#i-swim"/></svg>Swim <span class="key-tag">Key</span></div><div class="t">CSS intervals</div><div class="meta">30 min · CSS</div><div class="state done">✓ Done · 1 800 m</div></div>
+        <div class="dayfoot"><span class="rv">Go</span><div class="lb"><span style="width:86%"></span><i style="left:81%"></i></div><span>Load 112 of 105</span></div>
+      </div>
+      <div class="wcol">
+        <div class="wcol-head"><span class="d">Wed</span><span class="n">11</span></div>
+        <div class="card s-commute"><div class="row1"><svg class="sport-ico" style="width:14px;height:14px"><use href="#i-bike"/></svg>Commute · fixed</div><div class="t">Commute ride</div><div class="meta">40 min · Z1–Z2</div><div class="state done">✓ Done · 39 min</div></div>
+        <div class="dayfoot"><span class="rv">Keep it easy</span><div class="lb"><span style="width:31%"></span><i style="left:31%"></i></div><span>Load 40 of 40</span></div>
+      </div>
+      <div class="wcol">
+        <div class="wcol-head"><span class="d">Thu</span><span class="n">12</span></div>
+        <div class="card missed s-strength"><div class="row1"><svg class="sport-ico" style="width:14px;height:14px"><use href="#i-strength"/></svg>Strength</div><div class="t">Lower body + abs</div><div class="meta">45 min · RPE 6–7</div><div class="state missed">— Missed</div></div>
+        <div class="dayfoot"><span class="rv">Go</span><div class="lb"><span style="width:0%"></span><i style="left:42%"></i></div><span>Load 0 of 55</span></div>
+      </div>
+      <div class="wcol">
+        <div class="wcol-head"><span class="d">Fri</span><span class="n">13</span></div>
+        <div class="card s-swim"><div class="row1"><svg class="sport-ico" style="width:14px;height:14px"><use href="#i-swim"/></svg>Swim</div><div class="t">Easy swim</div><div class="meta">25 min · easy</div><div class="state done">✓ Done · 31 min · longer than planned</div></div>
+        <div class="dayfoot"><span class="rv">Keep it easy</span><div class="lb"><span style="width:35%"></span><i style="left:23%"></i></div><span>Load 46 of 30</span></div>
+      </div>
+      <div class="wcol today">
+        <div class="wcol-head"><span class="d">Sat</span><span class="n">14</span></div>
+        <div class="card s-run">
+          <button class="kebab" onclick="toggleMenu(event)"><svg width="16" height="16"><use href="#i-more"/></svg></button>
+          <div class="menu" id="menu">
+            <button>Swap with…</button>
+            <button>Move to…</button>
+            <button>Change session…</button>
+            <hr />
+            <button>Skip</button>
+            <button>Make rest day</button>
+          </div>
+          <div class="row1"><svg class="sport-ico" style="width:14px;height:14px"><use href="#i-run"/></svg>Run <span class="key-tag">Key</span></div>
+          <div class="t">parkrun (tempo)</div><div class="meta">40 min · Z3 · 4:55 /km</div>
+          <div class="state">○ Planned</div>
+          <div class="why"><button class="link faint">Why this?</button></div>
+        </div>
+        <div class="card s-swim"><div class="row1"><svg class="sport-ico" style="width:14px;height:14px"><use href="#i-swim"/></svg>Swim</div><div class="t">Endurance swim</div><div class="meta">40 min · CSS + 8–10 s</div><div class="state">○ Planned</div></div>
+        <div class="dayfoot"><span class="rv">Keep it easy</span><div class="lb"><span style="width:0%"></span><i style="left:73%"></i></div><span>Planned load 95</span></div>
+      </div>
+      <div class="wcol">
+        <div class="wcol-head"><span class="d">Sun</span><span class="n">15</span></div>
+        <div class="warnbox"><b>!</b><span>Hard parkrun Saturday, then a long run Sunday: two demanding days in a row.</span></div>
+        <div class="card s-run"><div class="row1"><svg class="sport-ico" style="width:14px;height:14px"><use href="#i-run"/></svg>Run</div><div class="t">Long run</div><div class="meta">75 min · Z2</div><div class="state">○ Planned</div><div class="why"><button class="link faint">Why did this change?</button></div></div>
+        <div class="dayfoot"><span class="faint">Readiness tomorrow</span><div class="lb"><span style="width:0%"></span><i style="left:54%"></i></div><span>Planned load 70</span></div>
+      </div>
+    </div>
+
+    <div class="week-bottom">
+      <section class="tile">
+        <div class="label">Week totals · vs last week (tick)</div>
+        <div class="totals">
+          <div class="trow s-swim"><span>Swim</span><div class="tbar"><span style="width:62%"></span><i style="left:55%"></i></div><span class="r">1 h 41 · 3 600 m</span></div>
+          <div class="trow s-bike"><span>Bike</span><div class="tbar"><span style="width:38%"></span><i style="left:70%"></i></div><span class="r">1 h 21</span></div>
+          <div class="trow s-run"><span>Run</span><div class="tbar"><span style="width:8%"></span><i style="left:48%"></i></div><span class="r">0 h 00 of 1 h 55</span></div>
+          <div class="trow s-strength"><span>Strength</span><div class="tbar"><span style="width:30%"></span><i style="left:60%"></i></div><span class="r">0 h 48</span></div>
+        </div>
+      </section>
+      <section class="tile">
+        <div class="label">Changes this week</div>
+        <ul class="changes">
+          <li><span class="who">Engine</span><span>Long run 60 → 75 min: build week 3, ramp is within the cap.</span></li>
+          <li><span class="who">You</span><span>Skipped Thursday's lower body.</span></li>
+        </ul>
+      </section>
+    </div>
+  </main>
+
+  <main class="page" id="page-trends"><div class="page-head"><h1>Trends</h1><span class="sub">M5</span></div><div class="placeholder">Trends page comes in M5.</div></main>
+  <main class="page" id="page-settings"><div class="page-head"><h1>Races &amp; Settings</h1><span class="sub">M4: Garmin key, races list. Rest in M5.</span></div><div class="placeholder">Races list, Garmin key, data folder. Debug views live behind a "Developer" section.</div></main>
+</div>
+
+<!-- ===================== DRAWER ===================== -->
+<div class="scrim" onclick="closeDrawer()"></div>
+<aside class="drawer s-swim">
+  <button class="close" onclick="closeDrawer()">✕</button>
+  <div class="sess-head"><svg class="sport-ico"><use href="#i-swim"/></svg><span class="label">Swim · Fri 13 Nov · 17:40</span></div>
+  <h2>Easy swim</h2>
+  <div class="muted">Pool 25 m · matched to Friday's plan</div>
+  <div class="dgrid">
+    <div><div class="v">1 600 m</div><div class="k">distance</div></div>
+    <div><div class="v">31:12</div><div class="k">moving time</div></div>
+    <div><div class="v">1:57</div><div class="k">avg /100 m</div></div>
+    <div><div class="v">132</div><div class="k">avg HR</div></div>
+    <div><div class="v">38</div><div class="k">avg SWOLF</div></div>
+    <div><div class="v">46</div><div class="k">load (TRIMP)</div></div>
+  </div>
+
+  <div class="section"><h3>Summary</h3><div>Steady 1.6 km at 1:57 /100 m, mostly in zone 2 as planned. That's done for Friday.</div></div>
+
+  <div class="section"><h3>Planned vs done</h3>
+    <div class="pvd"><div><div class="faint">Planned</div>Easy swim · 25 min · well below CSS</div><div><div class="faint">Done</div>31 min · Z2 most of it · longer than planned</div></div>
+  </div>
+
+  <div class="section"><h3>Heart rate zones</h3>
+    <div class="zrow"><span>Z1</span><div class="zb" style="width:18%;opacity:.35"></div><span class="muted">5:37</span></div>
+    <div class="zrow"><span>Z2</span><div class="zb" style="width:52%;opacity:.55"></div><span class="muted">16:13</span></div>
+    <div class="zrow"><span>Z3</span><div class="zb" style="width:24%;opacity:.8"></div><span class="muted">7:29</span></div>
+    <div class="zrow"><span>Z4</span><div class="zb" style="width:6%"></div><span class="muted">1:53</span></div>
+    <div class="zrow"><span>Z5</span><div class="zb" style="width:0"></div><span class="muted">0:00</span></div>
+  </div>
+
+  <div class="section"><h3>Intervals</h3>
+    <table>
+      <tr><th>#</th><th>Distance</th><th>Time</th><th>/100 m</th><th>SWOLF</th></tr>
+      <tr><td>1</td><td>400 m</td><td>7:58</td><td>1:59</td><td>39</td></tr>
+      <tr><td>2</td><td>400 m</td><td>7:46</td><td>1:56</td><td>38</td></tr>
+      <tr><td>3</td><td>400 m</td><td>7:44</td><td>1:56</td><td>38</td></tr>
+      <tr><td>4</td><td>400 m</td><td>7:44</td><td>1:56</td><td>37</td></tr>
+    </table>
+  </div>
+
+  <div class="section"><h3>How hard did it feel? (RPE)</h3>
+    <div class="rpe" id="rpe"></div>
+    <div class="faint" style="font-size:12px;margin-top:6px">Used for load when heart rate is unreliable (swims, strength).</div>
+  </div>
+</aside>
+
+<div class="mock-note">Static mockup: made-up data shaped like the real API</div>
+
+<script>
+const app = document.getElementById('app');
+function go(page) {
+  document.querySelectorAll('.rail-btn').forEach(b => b.classList.toggle('active', b.dataset.page === page));
+  document.querySelectorAll('.page').forEach(p => p.classList.toggle('active', p.id === 'page-' + page));
+}
+document.querySelectorAll('.rail-btn').forEach(b => b.addEventListener('click', () => go(b.dataset.page)));
+function openDrawer() { document.body.classList.add('drawer-open'); }
+function closeDrawer() { document.body.classList.remove('drawer-open'); }
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDrawer(); });
+function toggleMenu(e) { e.stopPropagation(); document.getElementById('menu').classList.toggle('open'); }
+document.addEventListener('click', () => document.getElementById('menu').classList.remove('open'));
+function acceptSuggestion() {
+  document.getElementById('suggest').innerHTML = '<div class="what muted">Changed to <b style="color:var(--text)">parkrun (easy)</b>. <button class="link">Undo</button></div>';
+  document.getElementById('sess-title').textContent = 'parkrun (easy)';
+  document.getElementById('sess-old').hidden = false;
+  document.getElementById('sess-key').hidden = true;
+  document.getElementById('sess-hr').textContent = 'Z2';
+  document.getElementById('sess-dur').textContent = '30 min';
+  document.getElementById('sess-pace').textContent = 'Easy';
+  document.getElementById('sess-pace-k').textContent = 'pace';
+  document.getElementById('sess-purpose').textContent = 'Easy aerobic run with the parkrun crowd. Conversational the whole way.';
+  document.getElementById('strip-run').textContent = 'parkrun easy';
+}
+function dismissSuggestion() { document.getElementById('suggest').remove(); }
+const rpe = document.getElementById('rpe');
+for (let i = 1; i <= 10; i++) {
+  const b = document.createElement('button'); b.textContent = i;
+  b.onclick = () => { rpe.querySelectorAll('button').forEach(x => x.classList.remove('on')); b.classList.add('on'); };
+  rpe.appendChild(b);
+}
+// mockup only: ?page=week / ?drawer=1 for screenshots
+const q = new URLSearchParams(location.search);
+if (q.get('page')) go(q.get('page'));
+if (q.get('drawer')) openDrawer();
+</script>
+</body>
+</html>

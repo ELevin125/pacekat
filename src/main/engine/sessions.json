@@ -1,0 +1,177 @@
+{
+  "version": 1,
+  "sessions": [
+    {
+      "key": "rest", "sport": "rest", "title": "Rest day", "intensity": "rest", "durationMin": [0, 0],
+      "purpose": "Absorb the training. Fitness is built while you recover.",
+      "structure": { "main": "No training. A walk is fine." },
+      "targets": {}, "phases": ["base", "build", "peak", "taper", "recovery", "maintain"], "isKey": false
+    },
+    {
+      "key": "mobility", "sport": "other", "title": "Mobility & core", "intensity": "z1", "durationMin": [20, 30],
+      "purpose": "Active recovery: loosen hips, hamstrings and shoulders.",
+      "structure": { "main": "Hip, hamstring and thoracic mobility; 3 rounds of plank, side plank and dead bugs." },
+      "targets": { "hr": "Z1" }, "phases": ["base", "build", "peak", "taper", "recovery", "maintain"], "isKey": false
+    },
+    {
+      "key": "commute_ride", "sport": "bike", "title": "Commute ride", "intensity": "z2", "durationMin": [40, 40],
+      "purpose": "Easy aerobic volume that fits your day.", "fixed": true,
+      "structure": { "main": "Ride to work and back at a conversational effort." },
+      "targets": { "hr": "Z1–Z2" }, "phases": ["base", "build", "peak", "taper", "recovery", "maintain"], "isKey": false
+    },
+
+    {
+      "key": "strength_upper", "sport": "strength", "title": "Upper body + abs", "intensity": "z2", "durationMin": [40, 50],
+      "purpose": "Shoulder and back strength for swimming; core for posture on the bike and run.",
+      "structure": { "warmup": "5 min band work", "main": "3×8–10 pull-ups/rows, push-ups, overhead press, face pulls; 3 rounds of abs", "cooldown": "Stretch" },
+      "targets": { "rpe": "6–7" }, "phases": ["base", "build", "maintain"], "isKey": false
+    },
+    {
+      "key": "strength_lower", "sport": "strength", "title": "Lower body + abs", "intensity": "z2", "durationMin": [40, 50],
+      "purpose": "Leg and hip strength to stay injury-free and push harder on the bike.",
+      "structure": { "warmup": "5 min easy + activation", "main": "3×6–8 squats, Romanian deadlifts, split squats, calf raises; 3 rounds of abs", "cooldown": "Stretch" },
+      "targets": { "rpe": "6–7" }, "phases": ["base", "build", "maintain"], "isKey": false
+    },
+    {
+      "key": "strength_upper_maint", "sport": "strength", "title": "Upper body (maintenance)", "intensity": "z2", "durationMin": [25, 35],
+      "purpose": "Keep strength without adding fatigue close to race day.",
+      "structure": { "main": "2×8 of the main lifts at a comfortable weight; light abs" },
+      "targets": { "rpe": "5" }, "phases": ["peak"], "isKey": false
+    },
+    {
+      "key": "strength_lower_maint", "sport": "strength", "title": "Lower body (maintenance)", "intensity": "z2", "durationMin": [25, 35],
+      "purpose": "Keep strength without heavy legs for the key sessions.",
+      "structure": { "main": "2×6 squats and deadlifts at a comfortable weight; light abs" },
+      "targets": { "rpe": "5" }, "phases": ["peak"], "isKey": false
+    },
+
+    {
+      "key": "swim_easy", "sport": "swim", "title": "Easy swim", "intensity": "z1", "durationMin": [20, 30],
+      "purpose": "Loosen up and keep the feel for the water.",
+      "structure": { "main": "Continuous easy freestyle; mix in backstroke if you like." },
+      "targets": { "swim": "Easy, well below CSS" }, "phases": ["base", "build", "peak", "taper", "recovery", "maintain"], "isKey": false
+    },
+    {
+      "key": "swim_technique", "sport": "swim", "title": "Technique swim", "intensity": "z2", "durationMin": [20, 30],
+      "purpose": "Efficiency is free speed: drills for catch, rotation and breathing.",
+      "structure": { "warmup": "200 m easy", "main": "6×50 drills (catch-up, fingertip drag, 6-kick switch) + 4×100 smooth", "cooldown": "100 m easy" },
+      "targets": { "swim": "Relaxed; focus on form" }, "phases": ["base", "maintain"], "isKey": false
+    },
+    {
+      "key": "swim_endurance", "sport": "swim", "title": "Endurance swim", "intensity": "z2", "durationMin": [30, 45],
+      "purpose": "Build the aerobic engine to swim 750 m without fading.",
+      "structure": { "warmup": "200 m easy", "main": "3–4×300 m steady with 30 s rest", "cooldown": "100 m easy" },
+      "targets": { "swim": "CSS + 8–10 s/100 m" }, "phases": ["base", "build", "maintain"], "isKey": false
+    },
+    {
+      "key": "swim_css_intervals", "sport": "swim", "title": "CSS intervals", "intensity": "threshold", "durationMin": [25, 35],
+      "purpose": "Raise your threshold swim pace — the pace you hold in a race.",
+      "structure": { "warmup": "200 m easy + 4×25 build", "main": "8–12×100 m at CSS, 15 s rest", "cooldown": "100 m easy" },
+      "targets": { "swim": "CSS" }, "phases": ["build"], "isKey": true, "easyVariant": "swim_easy"
+    },
+    {
+      "key": "swim_race_pace", "sport": "swim", "title": "Race-pace swim", "intensity": "threshold", "durationMin": [25, 35],
+      "purpose": "Rehearse 750 m at race effort so the start doesn't surprise you.",
+      "structure": { "warmup": "300 m easy + 4×25 fast", "main": "3×250 m at race pace, 30 s rest", "cooldown": "100 m easy" },
+      "targets": { "swim": "CSS − 2 s/100 m" }, "phases": ["peak"], "isKey": true, "easyVariant": "swim_easy"
+    },
+    {
+      "key": "swim_open_water", "sport": "swim", "title": "Open-water swim", "intensity": "z2", "durationMin": [30, 40],
+      "purpose": "Practise sighting, wetsuit swimming and swimming straight.",
+      "structure": { "main": "Continuous swim; sight every 6–8 strokes; 3–4 short surges to practise starts." },
+      "targets": { "swim": "Steady" }, "phases": ["build", "peak"], "isKey": false, "needs": "openWater"
+    },
+    {
+      "key": "swim_short_sharp", "sport": "swim", "title": "Short & sharp swim", "intensity": "tempo", "durationMin": [15, 20],
+      "purpose": "Stay sharp while resting up for the race.",
+      "structure": { "warmup": "200 m easy", "main": "6×50 m at race pace, 20 s rest", "cooldown": "100 m easy" },
+      "targets": { "swim": "Race pace" }, "phases": ["taper"], "isKey": false
+    },
+
+    {
+      "key": "ride_easy", "sport": "bike", "title": "Easy ride", "intensity": "z1", "durationMin": [30, 45],
+      "purpose": "Recovery spin.", "structure": { "main": "Flat route, light gears, high cadence." },
+      "targets": { "hr": "Z1" }, "phases": ["base", "build", "peak", "taper", "recovery", "maintain"], "isKey": false
+    },
+    {
+      "key": "ride_endurance", "sport": "bike", "title": "Endurance ride", "intensity": "z2", "durationMin": [60, 90],
+      "purpose": "Aerobic base on the bike.", "structure": { "main": "Steady road ride; keep it conversational." },
+      "targets": { "hr": "Z2", "power": "56–75 % FTP" }, "phases": ["base", "build", "maintain"], "isKey": false
+    },
+    {
+      "key": "mtb_endurance", "sport": "bike", "title": "MTB trail ride", "intensity": "z2", "durationMin": [60, 120],
+      "purpose": "Aerobic volume and bike handling — and fun.",
+      "structure": { "main": "Trail ride; keep climbs controlled, don't chase every Strava segment." },
+      "targets": { "hr": "Mostly Z2" }, "phases": ["base", "build", "peak", "recovery", "maintain"], "isKey": false
+    },
+    {
+      "key": "brick_build", "sport": "bike", "title": "Brick: bike → run", "intensity": "tempo", "durationMin": [50, 75],
+      "purpose": "Teach your legs to run straight off the bike.",
+      "structure": { "warmup": "10 min easy ride", "main": "2×12 min at tempo on the bike, then straight into a 10–15 min run at steady effort", "cooldown": "5 min walk" },
+      "targets": { "hr": "Z3 on the bike, Z2–Z3 on the run", "power": "76–90 % FTP" }, "phases": ["build"], "isKey": true, "easyVariant": "ride_endurance"
+    },
+    {
+      "key": "brick_race_sim", "sport": "bike", "title": "Brick: race simulation", "intensity": "threshold", "durationMin": [60, 80],
+      "purpose": "Rehearse race day: pacing, transition and fuelling.",
+      "structure": { "warmup": "10 min easy ride", "main": "20 km at race effort, quick transition, 3–5 km run at race pace", "cooldown": "10 min walk" },
+      "targets": { "hr": "Z3–Z4", "pace": "Race pace on the run" }, "phases": ["peak"], "isKey": true, "easyVariant": "ride_endurance"
+    },
+    {
+      "key": "brick_short", "sport": "bike", "title": "Short brick", "intensity": "tempo", "durationMin": [30, 40],
+      "purpose": "Stay sharp and rehearse transition while resting up.",
+      "structure": { "main": "20 min ride with 3×2 min at race effort, then a 10 min run with 3×30 s at race pace" },
+      "targets": { "hr": "Short race-effort bursts only" }, "phases": ["taper"], "isKey": false
+    },
+
+    {
+      "key": "run_easy", "sport": "run", "title": "Easy run", "intensity": "z2", "durationMin": [25, 40],
+      "purpose": "Aerobic running without fatigue.", "structure": { "main": "Conversational pace throughout." },
+      "targets": { "hr": "Z2", "pace": "Easy" }, "phases": ["base", "build", "peak", "taper", "recovery", "maintain"], "isKey": false
+    },
+    {
+      "key": "parkrun_easy", "noShorten": true, "sport": "run", "title": "parkrun (easy)", "intensity": "z2", "durationMin": [25, 35],
+      "purpose": "Enjoy the community run at an easy effort.", "structure": { "main": "5 km at a comfortable pace; finish feeling you could do more." },
+      "targets": { "hr": "Z2" }, "phases": ["base", "recovery", "maintain", "taper"], "isKey": false
+    },
+    {
+      "key": "parkrun_tempo", "noShorten": true, "sport": "run", "title": "parkrun (tempo)", "intensity": "tempo", "durationMin": [35, 45],
+      "purpose": "Sustained effort just below race pace — builds the 5 km engine.",
+      "structure": { "warmup": "10 min easy jog", "main": "parkrun at a comfortably-hard effort (you can say a few words)", "cooldown": "5 min easy" },
+      "targets": { "hr": "Z3", "pace": "Threshold + 10–15 s/km" }, "phases": ["base", "build", "maintain"], "isKey": true, "easyVariant": "parkrun_easy"
+    },
+    {
+      "key": "parkrun_race", "noShorten": true, "sport": "run", "title": "parkrun (race effort)", "intensity": "race", "durationMin": [35, 45],
+      "purpose": "Practise running 5 km hard — a C-race in all but name.",
+      "structure": { "warmup": "10 min easy + 3 strides", "main": "parkrun at race effort; even splits", "cooldown": "5 min easy" },
+      "targets": { "hr": "Z4", "pace": "5 km race pace" }, "phases": ["peak"], "isKey": true, "easyVariant": "parkrun_easy"
+    },
+    {
+      "key": "run_long_easy", "sport": "run", "title": "Long easy run", "intensity": "z2", "durationMin": [45, 75],
+      "purpose": "Endurance without intensity.", "structure": { "main": "Steady and conversational; walk breaks are fine on hills." },
+      "targets": { "hr": "Z2" }, "phases": ["base", "build", "maintain"], "isKey": false
+    },
+    {
+      "key": "run_long", "sport": "run", "title": "Long run", "intensity": "z2", "durationMin": [50, 90],
+      "purpose": "The backbone of running endurance.", "structure": { "main": "Steady Z2; last 10 min a little quicker if you feel good." },
+      "targets": { "hr": "Z2" }, "phases": ["base", "maintain"], "isKey": true, "easyVariant": "run_long_easy"
+    },
+    {
+      "key": "run_intervals", "sport": "run", "title": "Run intervals", "intensity": "vo2", "durationMin": [35, 50],
+      "purpose": "Raise top-end speed for the 5 km run.",
+      "structure": { "warmup": "15 min easy + 4 strides", "main": "5–6×3 min hard (Z4–Z5), 2 min jog", "cooldown": "10 min easy" },
+      "targets": { "hr": "Z4–Z5", "pace": "3–5 km race pace" }, "phases": ["build"], "isKey": true, "easyVariant": "run_easy"
+    },
+    {
+      "key": "run_race_pace", "sport": "run", "title": "Race-pace run", "intensity": "threshold", "durationMin": [35, 45],
+      "purpose": "Lock in the pace you'll run off the bike.",
+      "structure": { "warmup": "15 min easy", "main": "3×8 min at race pace, 2 min jog", "cooldown": "10 min easy" },
+      "targets": { "hr": "Z4", "pace": "Race pace" }, "phases": ["peak"], "isKey": true, "easyVariant": "run_easy"
+    },
+    {
+      "key": "run_strides_short", "sport": "run", "title": "Short run + strides", "intensity": "z2", "durationMin": [20, 25],
+      "purpose": "Keep the legs fresh and quick before race day.",
+      "structure": { "main": "15 min easy, then 4–6×20 s strides with full recovery" },
+      "targets": { "hr": "Z2" }, "phases": ["taper"], "isKey": false
+    }
+  ]
+}

@@ -3,7 +3,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import type { DB } from '../src/main/db';
-import { addDays, eachDay } from '../src/main/garmin/dates';
+import { addDays, eachDay } from '../src/main/util/dates';
 import { recomputeMetrics } from '../src/main/metrics/recompute';
 import { deriveDailyHealth, DERIVE_VERSION, ensureDerived } from '../src/main/sync/derive';
 import { getSetting } from '../src/main/db/settings';

@@ -6,7 +6,7 @@ import type { MetricsSummary } from '../../shared/api';
 
 export type { MetricsSummary };
 import { getSetting, setSetting } from '../db/settings';
-import { addDays, eachDay } from '../garmin/dates';
+import { addDays, eachDay } from '../util/dates';
 import { hrSamplesFromFit } from '../fit/hr';
 import {
   LOAD,

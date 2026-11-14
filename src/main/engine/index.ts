@@ -5,3 +5,4 @@ export * from './acwr';
 export * from './readiness';
 export * from './commute';
 export * from './match';
+export * from './plan';

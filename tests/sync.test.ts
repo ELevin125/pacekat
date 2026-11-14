@@ -3,7 +3,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { GarminAuthError, GarminNetworkError } from '../src/main/garmin/client';
-import { addDays, eachDay } from '../src/main/garmin/dates';
+import { addDays, eachDay } from '../src/main/util/dates';
 import { BACKFILL_DAYS, SyncService } from '../src/main/sync';
 import type { DB } from '../src/main/db';
 import { bytes, FakeGarmin, json, makeFit, openDbForTest, zipOf } from './helpers';

@@ -16,7 +16,7 @@ import { join, resolve } from 'node:path';
 import { parseArgs } from 'node:util';
 import { GarminClient, type GarminResponse } from '../src/main/garmin/client';
 import { activities, dailyEndpoints, fitnessAge, rangeEndpoints, staticEndpoints, type RequestSpec } from '../src/main/garmin/endpoints';
-import { addDays, chunkRange, eachDay, localToday } from '../src/main/garmin/dates';
+import { addDays, chunkRange, eachDay, localToday } from '../src/main/util/dates';
 import { extractActivityFiles } from '../src/main/garmin/activity-file';
 import { writeCoverage } from './probe/report';
 import type { Manifest } from './probe/types';

@@ -1,4 +1,5 @@
-import type { DateStr } from './endpoints';
+/** YYYY-MM-DD, athlete-local calendar day. */
+export type DateStr = string;
 
 /** Pure calendar-date helpers on YYYY-MM-DD strings (no timezone maths). */
 

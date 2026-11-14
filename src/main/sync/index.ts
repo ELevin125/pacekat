@@ -4,7 +4,7 @@ import { nowIso, type DB } from '../db';
 import type { GarminResponse } from '../garmin/client';
 import { GarminAuthError, GarminNetworkError } from '../garmin/client';
 import { activities as activityEndpoints, rangeEndpoints, staticEndpoints, type DateStr, type RequestSpec } from '../garmin/endpoints';
-import { addDays, chunkRange, daysBetween, eachDay, localToday } from '../garmin/dates';
+import { addDays, chunkRange, daysBetween, eachDay, localToday } from '../util/dates';
 import { extractActivityFiles } from '../garmin/activity-file';
 import type { SyncProgress, SyncResult, SyncStateRow } from '../../shared/api';
 import { DAILY_DATA_TYPES, splitByDay, type DailyDataType } from './split';

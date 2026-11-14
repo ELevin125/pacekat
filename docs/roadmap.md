@@ -20,7 +20,7 @@ Build in this order. Each milestone should end with something runnable and tests
 - Unit + fixture-based tests.
 - **Exit:** readiness verdicts for the last 30 days look sensible to the athlete.
 
-## M3 — Plan engine
+## M3 — Plan engine  ✅ built (2026-11-14) — scenario tests pass; 4-week blocks reviewed (maintain and race-in-3-weeks)
 - Races (A/B/C), phases, week template, session library, weekly generation, adaptation rules, validators, `plan_changes` log.
 - **Exit:** scenario tests pass; a generated 4-week block reads like a reasonable plan.
 

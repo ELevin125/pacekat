@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { addDays, chunkRange, eachDay, localToday } from '../src/main/garmin/dates';
+import { addDays, chunkRange, eachDay, localToday } from '../src/main/util/dates';
 import { GarminAuthError, GarminClient, GarminNetworkError, parseTokenResponse } from '../src/main/garmin/client';
 import { extractActivityFiles, isFitBytes } from '../src/main/garmin/activity-file';
 import { mapActivitySummary, sportFamily } from '../src/main/sync/activities';

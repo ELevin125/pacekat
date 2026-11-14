@@ -64,8 +64,11 @@ Rules:
     /ipc                 ← IPC handlers
     /engine              ← PURE functions: load, ACWR, readiness, commute, matching (M2); plan, adaptation (M3)
       constants.ts       ← all thresholds in one place
-      sessions.json      ← (M3) session library (data, not code)
+      sessions.json      ← session library (data, not code)
+      /plan              ← phases, week generation, validators, adaptation rules
     /metrics             ← recompute: DB ↔ engine glue, runs after every sync and manual edit
+    /plan                ← plan service: stores weeks, matching, missed-session moves, suggestions, edits, plan_changes log
+    /util/dates.ts       ← pure calendar-date helpers (shared by garmin, engine, sync)
     /ai                  ← (M6)
   /preload/index.ts      ← contextBridge → window.pacekat (built as CJS for the sandbox)
   /renderer              ← UI (M1: debug views)

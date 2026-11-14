@@ -101,3 +101,26 @@ td.sport-bike { color: var(--sport-bike); }
 td.sport-run { color: var(--sport-run); }
 td.sport-strength { color: var(--sport-strength); }
 td.sport-other { color: var(--sport-other); }
+
+.nomargin { margin: 0; }
+.notes { margin: 8px 0; padding-left: 18px; color: var(--text-2); }
+.suggestion { border-color: var(--text-2); }
+.week-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 8px; margin-top: 8px; }
+.day { background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 8px; min-height: 140px; display: flex; flex-direction: column; gap: 6px; }
+.day.today { border-color: var(--text-2); }
+.day h3 { font-size: 12px; font-weight: 500; color: var(--text-2); margin: 0; }
+.sess { border-left: 3px solid var(--sport-other); padding: 4px 6px; border-radius: 4px; background: var(--tile); }
+.sess.swim { border-color: var(--sport-swim); }
+.sess.bike { border-color: var(--sport-bike); }
+.sess.run { border-color: var(--sport-run); }
+.sess.strength { border-color: var(--sport-strength); }
+.sess.rest { border-color: var(--border); }
+.sess.inactive { opacity: 0.45; }
+.sess .t { font-weight: 500; font-size: 13px; }
+.sess .m, .sess .n { font-size: 11px; color: var(--text-2); }
+.sess select { width: 100%; margin-top: 4px; font-size: 11px; }
+.badge { font-size: 10px; border: 1px solid var(--border); border-radius: 6px; padding: 0 4px; margin-left: 4px; color: var(--text-2); }
+.changes { list-style: none; padding: 0; margin: 0; font-size: 12px; }
+.changes li { padding: 4px 0; border-top: 1px solid var(--border); }
+.race-form { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.race-form input { min-width: 0; flex: 1 1 140px; }
