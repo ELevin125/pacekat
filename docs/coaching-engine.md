@@ -15,7 +15,8 @@ Order of preference per activity:
    `HRrest` = 7-day mean resting HR from `daily_health`; `HRmax` from settings (default: Garmin profile / zones; editable).
 2. **Average-HR TRIMP** if only avg HR is available (same formula with one sample × duration).
 3. **Session RPE** when HR is unreliable or missing: `sRPE = duration_min × RPE`, converted to TRIMP units with factor `k`:
-   `k = median(TRIMP / sRPE)` over the athlete's last 60 days of sessions that have both. Default `k = 0.6` until ≥ 10 such sessions exist (tune after the probe).
+   `k = median(TRIMP / sRPE)` over the athlete's last 60 days of sessions that have both. Default `k = 0.3` until ≥ 10 such sessions exist (tune after the probe).
+   Sanity check for the default: 60 min at moderate effort (HRr ≈ 0.6) ≈ 73 TRIMP; at RPE 5 that's sRPE 300 → ratio ≈ 0.25. 60 min hard (HRr ≈ 0.8) ≈ 143 TRIMP at RPE 7–8 → ≈ 0.3. A higher default would roughly double-count swims and gym sessions until calibration kicks in.
 
 HR reliability rules:
 - **Pool swims:** wrist HR is unreliable → use sRPE **unless** the `swimHrStorage` sensor toggle is on (HRM 600 stores and forwards swim HR).
@@ -27,7 +28,7 @@ HR reliability rules:
 ## 2. Acute:chronic workload ratio (ACWR)
 
 - EWMA: acute λ = 2/(7+1), chronic λ = 2/(28+1), over daily load sums (0 on rest days).
-- `ACWR = acute / chronic`. Needs ≥ 28 days of history; before that, show "building baseline" and skip ACWR-based rules (use the 10 % weekly ramp rule only).
+- `ACWR = acute / chronic`. Needs ≥ 28 days of history; before that, show "building baseline" and skip ACWR-based rules (use the weekly ramp rule in §5 only).
 - Bands: ≤ 0.8 detraining · 0.8–1.3 sweet spot · 1.3–1.5 caution · > 1.5 high risk.
 - Provide `projectACWR(plan)` to evaluate proposed changes before applying them.
 
@@ -77,7 +78,9 @@ Inputs: week template (README defaults, editable), phase, last 4 weeks' load, re
   Must include at least: easy/technique/CSS-interval/open-water swims; easy/tempo/interval/long runs; parkrun (as C-race or tempo); easy/endurance/interval rides; MTB ride; **brick** (bike → run, build/peak phases); upper/lower strength; mobility/active recovery.
 - Fill each template slot with a session appropriate to the phase. Max **3 key sessions** per week. **Never two key sessions on consecutive days.**
 - **Commutes** (Mon/Wed) are fixed easy aerobic volume: counted in load, shown on the plan, never moved or upgraded by the engine.
-- Planned weekly load ≤ previous week's actual × 1.10 (× 1.05 in maintain mode).
+- **Weekly ramp:** planned weekly load ≤ `rampRef` × 1.10 (× 1.05 in maintain mode), where
+  `rampRef = max(previous week's actual load, 7 × chronic EWMA daily load)`.
+  Using last week alone would trap the plan after every 3:1 deload (−30 %) or sick week — returning to normal needs ≈ +43 %. The chronic term remembers what the athlete is actually adapted to. Before 28 days of history, `rampRef` = previous week's actual.
 - Sunday rule: plan the structured run only if the projected week load and ACWR allow; otherwise rest.
 
 ## 6. Matching planned vs done
@@ -93,7 +96,7 @@ Inputs: week template (README defaults, editable), phase, last 4 weeks' load, re
    - `easy` → key session becomes its easy variant (same sport, Z1–Z2, ~70 % duration).
    - Always offered as a **suggestion with one-tap accept/dismiss**, never silently applied.
 2. **Missed key session:** try to move it to the next slot this week that (a) isn't adjacent to another key day, (b) keeps projected ACWR ≤ 1.3, (c) isn't a commute. If none → drop it and note why. Never stack two sessions to "catch up".
-3. **Manual edits** (swap days, move, skip, mark rest, change session): apply immediately, then run validators — key-days back-to-back, ACWR projection > 1.3, weekly ramp > 10 % — and show warnings. Don't block.
+3. **Manual edits** (swap days, move, skip, mark rest, change session): apply immediately, then run validators — key-days back-to-back, ACWR projection > 1.3, weekly ramp above the §5 cap — and show warnings. Don't block.
 4. Every change writes a `plan_changes` row with a human reason ("Moved Thursday intervals to Saturday — you missed them and Saturday keeps your load ratio at 1.18").
 
 ## 8. Sensor toggles

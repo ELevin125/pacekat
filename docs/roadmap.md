@@ -2,12 +2,12 @@
 
 Build in this order. Each milestone should end with something runnable and tests passing. Confirm scope before starting each milestone.
 
-## M0 — Data probe
+## M0 — Data probe  ✅ built (2026-11-14) — real-data run pending the athlete's key
 - `scripts/probe.ts` per `garmin-data.md`.
 - Output: `fixtures/` (gitignored) + `fixtures/COVERAGE.md`.
 - **Exit:** we know which fields exist for the athlete's fenix 8 (HRV shape, sleep score, Body Battery, swim metrics, VO2 max in FIT or not, HR zones). Update `garmin-data.md` and the data model accordingly.
 
-## M1 — App skeleton + sync
+## M1 — App skeleton + sync  ✅ built (2026-11-14) — verified on Linux against a mock API; Windows run pending (CI is M7)
 - Electron + Vite + TS, typed preload API, SQLite with migrations.
 - Settings: paste Garmin key (safeStorage), connection test.
 - Sync: 90-day backfill with progress, incremental sync on open, FIT download + parse.
@@ -47,9 +47,10 @@ Build in this order. Each milestone should end with something runnable and tests
 
 ## Open questions
 - [ ] React or Svelte (before M4).
-- [ ] Exact Personal API endpoints, limits and rate limits (M0).
-- [ ] Is VO2 max in the original FIT files via the API? (M0)
+- [x] Exact Personal API endpoints and range limits — confirmed from the spec (see `garmin-data.md`). Rate limits and the token response body are undocumented; the probe records what we see.
+- [ ] VO2 max: the activity summary schema has `vO2MaxValue`; the probe also checks FIT `maxMetData`. Confirm with the athlete's real data.
 - [ ] The athlete's max HR (measured or Garmin-detected) and swim CSS / run threshold pace for targets.
 - [ ] Confirm his baseline week still matches reality.
 - [ ] Model choice and size (M6).
+- [ ] Run the probe on the athlete's real fenix 8 data (needs his key) and review `fixtures/COVERAGE.md`.
 - [ ] Which machine he'll run it on (laptop vs desktop with RTX 4070) — affects AI speed only.

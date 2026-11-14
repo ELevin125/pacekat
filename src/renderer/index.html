@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self' ws:; object-src 'none'; base-uri 'none'; form-action 'none'"
+    />
+    <title>Pacekat</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="top">
+      <h1>Pacekat <span class="muted">· M1 debug views</span></h1>
+      <nav>
+        <button data-tab="garmin" class="tab active">Garmin</button>
+        <button data-tab="sync" class="tab">Sync</button>
+        <button data-tab="data" class="tab">Data</button>
+      </nav>
+    </header>
+
+    <main>
+      <section id="tab-garmin" class="panel">
+        <div class="tile">
+          <h2>Garmin connection</h2>
+          <p id="garmin-status" class="muted">Loading…</p>
+          <ol class="howto">
+            <li>Sign in to Garmin Connect on the web and open
+              <a href="https://connect.garmin.com/app/settings/personalApiToken" target="_blank" rel="noreferrer">Personal API Key</a>.</li>
+            <li>Create Key → accept the terms → choose <b>1 year</b> → copy the key (it starts with <code>GCDC_</code>; it is shown only once).</li>
+            <li>Paste it below.</li>
+          </ol>
+          <form id="key-form" class="row">
+            <input id="key-input" type="password" autocomplete="off" spellcheck="false" placeholder="GCDC_…" />
+            <button type="submit">Save key</button>
+          </form>
+          <div class="row">
+            <button id="test-btn">Test connection</button>
+            <button id="clear-btn" class="ghost">Remove key</button>
+          </div>
+          <p id="garmin-msg" class="msg"></p>
+        </div>
+        <div class="tile">
+          <h2>App</h2>
+          <dl id="app-info" class="kv"></dl>
+          <button id="open-folder" class="ghost">Open data folder</button>
+        </div>
+      </section>
+
+      <section id="tab-sync" class="panel hidden">
+        <div class="tile">
+          <h2>Sync</h2>
+          <div class="row">
+            <button id="sync-btn">Sync now</button>
+            <button id="full-btn" class="ghost">Re-sync last 90 days</button>
+          </div>
+          <div class="progress"><div id="progress-bar"></div></div>
+          <p id="sync-msg" class="msg"></p>
+          <ul id="sync-errors" class="errors"></ul>
+        </div>
+        <div class="tile">
+          <h2>Sync state</h2>
+          <p id="last-sync" class="muted"></p>
+          <table id="state-table"></table>
+        </div>
+      </section>
+
+      <section id="tab-data" class="panel hidden">
+        <div class="tile narrow">
+          <h2>Tables</h2>
+          <ul id="table-list" class="tables"></ul>
+        </div>
+        <div class="tile wide">
+          <div class="row spread">
+            <h2 id="rows-title">Pick a table</h2>
+            <div class="row">
+              <button id="prev-page" class="ghost">‹ Prev</button>
+              <span id="page-info" class="muted"></span>
+              <button id="next-page" class="ghost">Next ›</button>
+            </div>
+          </div>
+          <div class="scroll"><table id="rows-table"></table></div>
+        </div>
+      </section>
+    </main>
+
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

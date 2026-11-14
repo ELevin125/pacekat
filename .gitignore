@@ -1,0 +1,14 @@
+node_modules/
+dist/
+out/
+*.log
+
+# Real personal health data from the Garmin probe. Never commit.
+fixtures/
+
+# Secrets
+.env
+.env.*
+
+# llama-server binaries are fetched in CI
+resources/llama/

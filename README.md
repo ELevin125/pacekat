@@ -9,12 +9,12 @@ Built for a friend. Runs on the athlete's Windows machine; developed on Linux. S
 | File | What it covers |
 |---|---|
 | `README.md` | Purpose, scope, principles (this file) |
-| `architecture.md` | Stack, process layout, folder structure, storage, packaging |
-| `garmin-data.md` | Garmin Personal API, sync, data model, the data probe |
-| `coaching-engine.md` | Load, readiness, plan generation, adaptation rules |
-| `ai-summary.md` | Bundled local LLM for the daily/activity summary |
-| `ui.md` | Pages, bento layout, sport colours, interactions |
-| `roadmap.md` | Milestones in build order, open questions |
+| `docs/architecture.md` | Stack, process layout, folder structure, storage, packaging |
+| `docs/garmin-data.md` | Garmin Personal API, sync, data model, the data probe |
+| `docs/coaching-engine.md` | Load, readiness, plan generation, adaptation rules |
+| `docs/ai-summary.md` | Bundled local LLM for the daily/activity summary |
+| `docs/ui.md` | Pages, bento layout, sport colours, interactions |
+| `docs/roadmap.md` | Milestones in build order, open questions |
 
 ## The purpose, in one line
 
@@ -70,3 +70,15 @@ The athlete opens the app once a day and sees: what he did, how recovered he is,
 4. **Local and private.** All data in the app's user-data folder. Only network calls: Garmin Personal API and the one-time model download.
 5. **Degrade gracefully.** Missing HRV, no chest strap, no model, no race — every feature has a fallback.
 6. **Store raw, derive later.** Keep Garmin's raw JSON and original FIT files so new metrics can be extracted without re-fetching.
+
+## Development
+
+```bash
+npm install
+npm run dev                              # run the app with hot reload
+npm test                                 # unit + sync tests
+GARMIN_API_KEY=GCDC_... npm run probe    # M0 data probe → fixtures/COVERAGE.md
+```
+
+More in `docs/architecture.md` → Development.
+

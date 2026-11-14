@@ -7,8 +7,8 @@
 | Shell | **Electron** | Cross-platform; the developer's familiar setup. |
 | Language | **TypeScript** (strict) everywhere | Main, preload, renderer, engine, scripts. |
 | Build | **Vite** (renderer) + electron-vite or equivalent | |
-| UI framework | **React or Svelte — decide before the UI milestone** | Data and engine milestones don't depend on it. |
-| Database | **SQLite via `better-sqlite3`** | Synchronous, fast, well-trodden in Electron. Native module → rebuild per platform. |
+| UI framework | **React or Svelte — decide before the UI milestone** | Data and engine milestones don't depend on it. M1 debug views are plain TypeScript + DOM. |
+| Database | **SQLite via `better-sqlite3`** (v13+) | Synchronous, fast, well-trodden in Electron. v13 is N-API with bundled prebuilds, so the same binary loads in Node (tests) and Electron — no `electron-rebuild` step. |
 | FIT parsing | **`@garmin/fitsdk`** (Garmin's official JS SDK) | |
 | Charts | Lightweight lib (uPlot or Chart.js) | Keep bundle small; follow `ui.md` colour rules. |
 | Tests | **Vitest** | Engine is pure functions tested against recorded fixtures. |
@@ -44,36 +44,49 @@ Rules:
 - `engine/` has **no imports** from `db/`, `garmin/`, Electron or Node IO. Inputs in, results out. This is what makes it testable and safe to change.
 - All dates handled as local calendar dates in the athlete's timezone (Africa/Johannesburg by default; read from system). Store timestamps as UTC ISO strings, store "day" fields as `YYYY-MM-DD` local.
 
-## Suggested repo layout
+## Repo layout
 
 ```
-/docs                  ← these files
+/docs                    ← these files
 /scripts
-  probe.ts             ← Milestone 0 data probe (see garmin-data.md)
-/fixtures              ← GITIGNORED. Real personal health data. Never commit.
+  probe.ts               ← M0 data probe (see garmin-data.md)
+  /probe                 ← probe inspection + COVERAGE.md report
+/fixtures                ← GITIGNORED. Real personal health data. Never commit.
 /src
+  /shared/api.ts         ← typed IPC API shared by main, preload and renderer (types only)
   /main
-    /garmin
-    /sync
-    /db
-      migrations/
-    /engine
-      load.ts
-      readiness.ts
-      plan.ts
-      adapt.ts
-      sessions.json    ← session library (data, not code)
-      constants.ts     ← all thresholds in one place
-    /ai
-    /secrets
-    /ipc
-    main.ts
-  /preload
-  /renderer
+    main.ts              ← app lifecycle, window, single-instance lock
+    /garmin              ← Personal API client, endpoint catalogue, dates, zip handling (no Electron imports)
+    /fit                 ← FIT decoding (@garmin/fitsdk)
+    /sync                ← SyncService, range splitting, activity mapping, FIT facts, daily_health derivation
+    /db                  ← better-sqlite3, migrations/, settings
+    /secrets             ← safeStorage-encrypted key + token cache
+    /ipc                 ← IPC handlers
+    /engine              ← (M2+) PURE functions: load, readiness, plan, adaptation
+      sessions.json      ← session library (data, not code)
+      constants.ts       ← all thresholds in one place
+    /ai                  ← (M6)
+  /preload/index.ts      ← contextBridge → window.pacekat (built as CJS for the sandbox)
+  /renderer              ← UI (M1: debug views)
 /resources
-  /llama               ← llama-server binaries per platform (fetched in CI, not committed)
-/tests
+  /llama                 ← llama-server binaries per platform (fetched in CI, not committed)
+/tests                   ← Vitest
 ```
+
+## Development
+
+```bash
+npm install
+npm run dev          # electron-vite dev with HMR
+npm test             # vitest
+npm run typecheck    # main/preload/scripts/tests + renderer
+npm run build        # bundles into out/
+npm start            # run the built app
+```
+
+Dev-only environment variables (ignored in packaged builds):
+- `GARMIN_API_BASE` — point the app (and the probe) at a mock Garmin server.
+- `PACEKAT_USER_DATA` — use a separate data folder (smoke tests, clean first-run).
 
 ## Storage locations (Electron `app.getPath('userData')`)
 

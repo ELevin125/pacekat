@@ -1,0 +1,34 @@
+{
+  "name": "pacekat",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Offline training readiness and adaptive plans from Garmin data.",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "probe": "tsx scripts/probe.ts",
+    "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.web.json",
+    "dev": "electron-vite dev",
+    "build": "electron-vite build",
+    "start": "electron-vite preview",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^9.6.0",
+    "@types/node": "^22.20.5",
+    "electron": "^45.3.2",
+    "electron-vite": "^6.0.0",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.8",
+    "vitest": "^5.1.0"
+  },
+  "dependencies": {
+    "@garmin/fitsdk": "^21.221.0",
+    "better-sqlite3": "^13.1.1",
+    "fflate": "^0.8.3"
+  },
+  "main": "./out/main/index.js"
+}

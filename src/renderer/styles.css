@@ -1,0 +1,82 @@
+/* Tokens from docs/ui.md. Debug views only — the real UI comes in M4. */
+:root {
+  --bg: #0b0d10;
+  --tile: #15181d;
+  --border: #22262d;
+  --text: #e8eaed;
+  --text-2: #9aa0a6;
+  --warn: #ff5a5f;
+  --sport-swim: #3da5ff;
+  --sport-bike: #ff8a3d;
+  --sport-run: #b8f04a;
+  --sport-strength: #a78bfa;
+  --sport-other: #8a9099;
+  --radius: 16px;
+  --gap: 12px;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font: 14px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-variant-numeric: tabular-nums;
+}
+
+.top {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 20px; border-bottom: 1px solid var(--border);
+}
+h1 { font-size: 18px; font-weight: 500; margin: 0; }
+h2 { font-size: 15px; font-weight: 500; margin: 0 0 10px; }
+.muted { color: var(--text-2); }
+code { background: var(--border); padding: 1px 5px; border-radius: 4px; }
+a { color: var(--text); }
+
+nav { display: flex; gap: 6px; }
+button {
+  background: var(--text); color: var(--bg); border: 0; border-radius: 10px;
+  padding: 7px 14px; font: inherit; cursor: pointer;
+}
+button.ghost, button.tab { background: transparent; color: var(--text); border: 1px solid var(--border); }
+button.tab.active { background: var(--tile); border-color: var(--text-2); }
+button:disabled { opacity: 0.5; cursor: default; }
+
+main { padding: 20px; }
+.panel { display: flex; flex-wrap: wrap; gap: var(--gap); align-items: flex-start; }
+.hidden { display: none; }
+.tile {
+  background: var(--tile); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 16px; flex: 1 1 420px; min-width: 0;
+}
+.tile.narrow { flex: 0 0 240px; }
+.tile.wide { flex: 1 1 600px; }
+
+.row { display: flex; gap: 8px; align-items: center; margin: 8px 0; flex-wrap: wrap; }
+.row.spread { justify-content: space-between; margin-top: 0; }
+input {
+  flex: 1; min-width: 240px; background: var(--bg); color: var(--text);
+  border: 1px solid var(--border); border-radius: 10px; padding: 7px 10px; font: inherit;
+}
+.howto { color: var(--text-2); padding-left: 18px; }
+.msg { min-height: 1.4em; }
+.msg.bad, .errors { color: var(--warn); }
+
+.kv { display: grid; grid-template-columns: max-content 1fr; gap: 4px 12px; margin: 0 0 12px; }
+.kv dt { color: var(--text-2); }
+.kv dd { margin: 0; word-break: break-all; }
+
+.progress { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; margin: 10px 0; }
+#progress-bar { height: 100%; width: 0; background: var(--text); transition: width 0.2s; }
+
+table { border-collapse: collapse; width: 100%; font-size: 12px; }
+th, td { text-align: left; padding: 4px 8px; border-bottom: 1px solid var(--border); vertical-align: top; }
+th { color: var(--text-2); font-weight: 500; position: sticky; top: 0; background: var(--tile); }
+td { max-width: 360px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.scroll { overflow: auto; max-height: calc(100vh - 200px); }
+
+.tables { list-style: none; margin: 0; padding: 0; }
+.tables li { display: flex; justify-content: space-between; padding: 4px 8px; border-radius: 8px; cursor: pointer; }
+.tables li:hover, .tables li.active { background: var(--border); }
