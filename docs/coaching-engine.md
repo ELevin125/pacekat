@@ -79,7 +79,19 @@ Phases, counted back from the next **A** race (within 24 weeks):
 
 ## 5. Weekly plan generation
 
-Inputs: week template (README defaults, editable), phase, last 4 weeks' load, readiness history, races, sensor toggles, session library.
+Inputs: week template (defaults below, editable in Settings → My week), phase, last 4 weeks' load, readiness history, races, sensor toggles, session library.
+
+Default week (`DEFAULT_TEMPLATE` in `src/main/engine/plan/generate.ts`):
+
+| Day | Default |
+|---|---|
+| Mon | ~12 km round-trip bike commute |
+| Tue | Upper body strength + abs, short swim |
+| Wed | ~12 km round-trip bike commute |
+| Thu | Lower body strength + abs |
+| Fri | Rest / active recovery |
+| Sat | MTB trail ride **or** 5 km parkrun, + swim |
+| Sun | Structured run **or** full rest (depends on weekly load) |
 
 - **Session library** (`sessions.json`): data, not code. Each entry: `key`, `sport`, `title`, `intensity`, `duration_min` (range), `purpose`, `structure` (warm-up / main set / cool-down text), `targets` (HR zone; pace for run; pace/100 m for swim; power only if `bikePower`), `phases` where it's allowed, `is_key`.
   Must include at least: easy/technique/CSS-interval/open-water swims; easy/tempo/interval/long runs; parkrun (as C-race or tempo); easy/endurance/interval rides; MTB ride; **brick** (bike → run, build/peak phases); upper/lower strength; mobility/active recovery.

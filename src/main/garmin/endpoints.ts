@@ -102,7 +102,7 @@ export const fitnessAge = (d: DateStr): RequestSpec => ({ path: `/fitnessage-ser
 
 /**
  * Endpoints in the spec we deliberately do NOT call: unrelated to training
- * (README principle: don't request unrelated data).
+ * (local and private: don't request data the app doesn't use).
  *   - /nutrition-service/food/logs/{date}
  *   - /goal-service/goal/user/effective/weightgoal/{startDate}/{endDate}
  *   - /periodichealth-service/menstrualcycle/*
