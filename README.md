@@ -49,7 +49,7 @@ GARMIN_API_KEY=GCDC_... npm run probe    # data probe → fixtures/COVERAGE.md
 npm run dist:linux                       # .deb + AppImage in release/
 ```
 
-The Windows installer is built by GitHub Actions on every push to `main`; tagging `v*` publishes a release with all packages. More in `docs/architecture.md` → Development and Packaging.
+The Windows installer is built by GitHub Actions on every push to `main`; publishing a release on GitHub attaches all packages to it. More in `docs/architecture.md` → Development and Packaging.
 
 ## Docs
 

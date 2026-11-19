@@ -56,7 +56,7 @@ Pacekat gives training suggestions, not medical advice. If something hurts or fe
 ## For the developer: cutting a release
 
 1. Bump `version` in `package.json` (e.g. `0.2.0`), commit and push.
-2. On GitHub: **Releases → Draft a new release**, type the tag `v0.2.0` (choose "Create new tag on publish", target `main`), write the notes, **Publish**. (Or from the terminal: `git tag v0.2.0 && git push origin v0.2.0`, and add notes afterwards.)
+2. On GitHub: **Releases → Draft a new release**, type the tag `v0.2.0` (choose "Create new tag on publish", target `main`), write the notes, **Publish**. (Or from the terminal: `gh release create v0.2.0 --target main --generate-notes`.)
 3. GitHub Actions (`.github/workflows/ci.yml`) runs the tests on Linux and Windows, builds `Pacekat-Setup-0.2.0.exe`, `pacekat_0.2.0_amd64.deb` and `Pacekat-0.2.0.AppImage`, and attaches all three to that release a few minutes later. Your notes are left as written.
 4. Every push to `main` also builds them; download from the workflow run's **Artifacts** to test before tagging.
 
