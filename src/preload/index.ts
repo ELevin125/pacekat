@@ -1,6 +1,10 @@
 import { contextBridge, ipcRenderer, type IpcRendererEvent } from 'electron';
 import { IPC, type PacekatApi, type SyncProgress } from '../shared/api';
 
+// One IPC listener fanned out to every subscriber (each page has many data hooks).
+const changeListeners = new Set<() => void>();
+ipcRenderer.on(IPC.dataChanged, () => changeListeners.forEach((cb) => cb()));
+
 const api: PacekatApi = {
   app: {
     info: () => ipcRenderer.invoke(IPC.appInfo),
@@ -8,9 +12,8 @@ const api: PacekatApi = {
     exportBackup: () => ipcRenderer.invoke(IPC.appExportBackup),
     openDebug: () => ipcRenderer.invoke(IPC.appOpenDebug),
     onChanged: (cb) => {
-      const listener = () => cb();
-      ipcRenderer.on(IPC.dataChanged, listener);
-      return () => ipcRenderer.removeListener(IPC.dataChanged, listener);
+      changeListeners.add(cb);
+      return () => changeListeners.delete(cb);
     },
   },
   garmin: {

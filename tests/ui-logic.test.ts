@@ -85,6 +85,9 @@ describe('template summaries', () => {
       'You look recovered and good to go. Nothing planned today, so enjoy the rest. Sprint tri is in 6 days.',
     );
     expect(dailyText({ kind: 'daily', verdict: null, why: null, today: [] })).toMatch(/No readiness data yet/);
+    expect(dailyText({ kind: 'daily', verdict: 'easy', why: 'Not enough data today — keep it easy.', today: [] })).toBe(
+      "There isn't enough data from last night, so keep today easy to be safe. Nothing planned today, so enjoy the rest.",
+    );
   });
 });
 

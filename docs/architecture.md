@@ -7,10 +7,10 @@
 | Shell | **Electron** | Cross-platform; the developer's familiar setup. |
 | Language | **TypeScript** (strict) everywhere | Main, preload, renderer, engine, scripts. |
 | Build | **Vite** (renderer) + electron-vite or equivalent | |
-| UI framework | **React or Svelte — decide before the UI milestone** | Data and engine milestones don't depend on it. M1 debug views are plain TypeScript + DOM. |
+| UI framework | **React 19** | Plain CSS: `tokens.css` (all colours/sizes) + `app.css` (from the mockup) + `extra.css`. Debug views stay plain TypeScript + DOM in their own window. |
 | Database | **SQLite via `better-sqlite3`** (v13+) | Synchronous, fast, well-trodden in Electron. v13 is N-API with bundled prebuilds, so the same binary loads in Node (tests) and Electron — no `electron-rebuild` step. |
 | FIT parsing | **`@garmin/fitsdk`** (Garmin's official JS SDK) | |
-| Charts | Lightweight lib (uPlot or Chart.js) | Keep bundle small; follow `ui.md` colour rules. |
+| Charts | Small hand-written SVG components | 4–12 weekly points per series; no library needed. Follow `ui.md` colour rules. |
 | Tests | **Vitest** | Engine is pure functions tested against recorded fixtures. |
 | Local LLM | **llama.cpp `llama-server`** shipped as a sidecar binary | See `ai-summary.md`. |
 | Packaging | **electron-builder** → NSIS installer (Windows), AppImage (Linux dev) | |
@@ -54,6 +54,7 @@ Rules:
 /fixtures                ← GITIGNORED. Real personal health data. Never commit.
 /src
   /shared/api.ts         ← typed IPC API shared by main, preload and renderer (types only)
+  /shared/format.ts      ← pure formatting (durations, paces, dates, targets), used by main and renderer
   /main
     main.ts              ← app lifecycle, window, single-instance lock
     /garmin              ← Personal API client, endpoint catalogue, dates, zip handling (no Electron imports)
@@ -69,9 +70,20 @@ Rules:
     /metrics             ← recompute: DB ↔ engine glue, runs after every sync and manual edit
     /plan                ← plan service: stores weeks, matching, missed-session moves, suggestions, edits, plan_changes log
     /util/dates.ts       ← pure calendar-date helpers (shared by garmin, engine, sync)
+    /activities          ← activity detail for the drawer (laps, HR zones from FIT, cached)
+    /summaries           ← facts → template text (M6 LLM plugs in here), cached in `summaries`
+    /trends              ← weekly aggregation + focus hints
+    /settings            ← thresholds, sensors + nudges, zones override, Garmin status
     /ai                  ← (M6)
   /preload/index.ts      ← contextBridge → window.pacekat (built as CJS for the sandbox)
-  /renderer              ← UI (M1: debug views)
+  /renderer
+    main.tsx, App.tsx    ← React entry, rail, page switching, sync state, first run
+    api.ts               ← window.pacekat + useApi() (refetches on the main process's data:changed event)
+    view.ts              ← pure view-model helpers (tested)
+    /pages               ← Today, Week, Trends, Settings
+    /components          ← Drawer, FirstRun, charts, icons, shared bits
+    /styles              ← tokens.css, app.css, extra.css
+    debug.html / debug.ts ← M1–M3 debug views (Settings → Developer)
 /resources
   /llama                 ← llama-server binaries per platform (fetched in CI, not committed)
 /tests                   ← Vitest

@@ -27,6 +27,8 @@ export interface ValidateContext {
   /** Actual load this week before `fromDate`. */
   weekLoadSoFar: number;
   mode: PlanMode;
+  /** The cap the engine planned this week with (floored when easing back in after a break). */
+  planCap?: number | null;
 }
 
 const DAY = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
@@ -47,7 +49,13 @@ export function validateWeek(sessions: ActiveSession[], ctx: ValidateContext): W
     warnings.push({ code: 'too_many_keys', message: `${keyDates.length} hard days this week; ${PLAN.maxKeys} is the most that's safe to recover from.`, dates: keyDates });
   }
 
-  if (ctx.lastPoint && ctx.fromDate <= sunday) {
+  const factor = ctx.mode === 'maintain' ? PLAN.maintainRampFactor : PLAN.rampFactor;
+  const rampCap = ctx.rampRef && ctx.rampRef > 0 ? ctx.rampRef * factor : null;
+  // Easing back in: the engine raised the cap above the ramp on purpose, and the load ratio
+  // is meaningless with a near-zero baseline, so judge the week the way it was planned.
+  const easingBack = ctx.planCap != null && rampCap != null && ctx.planCap > rampCap * 1.01;
+
+  if (ctx.lastPoint && ctx.fromDate <= sunday && !easingBack) {
     const days = eachDay(ctx.fromDate, sunday).map((date) => ({ date, load: sessions.filter((s) => s.date === date).reduce((a, s) => a + s.estLoad, 0) }));
     const proj = projectAcwr(ctx.lastPoint, days);
     const high = proj.filter((p) => p.acwr != null && p.acwr > PLAN.sundayAcwrMax);
@@ -57,14 +65,15 @@ export function validateWeek(sessions: ActiveSession[], ctx: ValidateContext): W
     }
   }
 
-  if (ctx.rampRef && ctx.rampRef > 0) {
-    const factor = ctx.mode === 'maintain' ? PLAN.maintainRampFactor : PLAN.rampFactor;
+  if (rampCap != null) {
     const planned = sessions.filter((s) => s.date >= ctx.fromDate && s.sessionKey !== 'race').reduce((a, s) => a + s.estLoad, 0) + ctx.weekLoadSoFar;
-    const cap = ctx.rampRef * factor;
+    const cap = easingBack ? ctx.planCap! : rampCap;
     if (planned > cap * 1.01) {
       warnings.push({
         code: 'ramp',
-        message: `This week's load is ${Math.round((planned / ctx.rampRef - 1) * 100)} % above your recent training (limit ${Math.round((factor - 1) * 100)} %).`,
+        message: easingBack
+          ? `This week's load is ${Math.round((planned / cap - 1) * 100)} % above the easing-back-in limit.`
+          : `This week's load is ${Math.round((planned / ctx.rampRef! - 1) * 100)} % above your recent training (limit ${Math.round((factor - 1) * 100)} %).`,
         dates: [],
       });
     }

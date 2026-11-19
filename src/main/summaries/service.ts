@@ -3,7 +3,7 @@ import { nowIso } from '../db/util';
 import { addDays } from '../util/dates';
 import { clock, pace, weekdayShort } from '../../shared/format';
 import type { ActivityDetail } from '../../shared/api';
-import { activityText, dailyText, type ActivityFacts, type DailyFacts, type ZoneKey } from './template';
+import { TEMPLATE_VERSION, activityText, dailyText, type ActivityFacts, type DailyFacts, type ZoneKey } from './template';
 
 /**
  * Builds facts objects from the database and returns cached summary text.
@@ -55,8 +55,8 @@ function comparisons(db: DB, d: Omit<ActivityDetail, 'summary'>): string[] {
 
 function nextSession(db: DB, after: string): string | undefined {
   const r = db
-    .prepare(`SELECT local_date, title FROM planned_sessions WHERE local_date > ? AND status = 'planned' AND sport <> 'rest' ORDER BY local_date, slot LIMIT 1`)
-    .get(after) as { local_date: string; title: string } | undefined;
+    .prepare(`SELECT local_date, title FROM planned_sessions WHERE local_date > ? AND local_date <= ? AND status = 'planned' AND sport <> 'rest' ORDER BY local_date, slot LIMIT 1`)
+    .get(after, addDays(after, 3)) as { local_date: string; title: string } | undefined;
   if (!r) return undefined;
   return `${r.local_date === addDays(after, 1) ? 'tomorrow' : weekdayShort(r.local_date)}, ${r.title.toLowerCase()}`;
 }
@@ -102,7 +102,8 @@ export function dailyFacts(db: DB, date: string): DailyFacts {
 }
 
 function cached(db: DB, kind: 'activity' | 'daily', ref: string, facts: unknown, render: () => string): SummaryResult {
-  const factsJson = JSON.stringify(facts);
+  // The template version is part of the key: new wording rewrites cached text (M6 adds the model name here).
+  const factsJson = JSON.stringify({ template: TEMPLATE_VERSION, facts });
   const row = db.prepare('SELECT text, source, facts_json FROM summaries WHERE kind = ? AND ref = ?').get(kind, ref) as
     | { text: string; source: SummaryResult['source']; facts_json: string }
     | undefined;

@@ -1,5 +1,7 @@
 # M4 plan — UI: Today + Week
 
+> **Status (2026-11-19): built**, M5 too. React 19 chosen. What changed during the build is recorded in `ui.md` → "As built". Charts ended up as small SVG components rather than uPlot, and styles as plain CSS files rather than CSS Modules. This plan is kept for history.
+
 Draft, 2026-11-14. Layout and style follow `ui.md`. The mockup in `mockups/app.html` covers the whole app (M4 and M5 pages) and is where they get tested. Open it in a browser and use the rail; click the latest-activity tile for the drawer and the ⋮ on Saturday's run for quick actions.
 
 **Exit (from the roadmap):** the athlete can use it daily, with template summaries.

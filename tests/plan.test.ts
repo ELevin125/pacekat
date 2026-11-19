@@ -254,6 +254,16 @@ describe('validators', () => {
     const w = validateWeek(Array.from({ length: 7 }, (_, i) => s(addDays(MON, i), false, 150)), ctx);
     expect(w.map((x) => x.code)).toEqual(expect.arrayContaining(['ramp', 'acwr_high']));
   });
+  it('judges an easing-back week by the cap it was planned with', () => {
+    const week = Array.from({ length: 7 }, (_, i) => s(addDays(MON, i), false, 30)); // 210 total
+    const low = { ...ctx, rampRef: 160, mode: 'maintain' as const }; // ramp cap 168
+    expect(validateWeek(week, low).map((x) => x.code)).toContain('ramp');
+    const easing = validateWeek(week, { ...low, planCap: 212 });
+    expect(easing.map((x) => x.code)).not.toContain('ramp');
+    expect(easing.map((x) => x.code)).not.toContain('acwr_high');
+    expect(validateWeek([...week, s(MON, false, 60)], { ...low, planCap: 212 })[0]!.message).toMatch(/easing-back-in limit/);
+  });
+
   it('is quiet for a normal week', () => {
     expect(validateWeek([s(MON, false), s(addDays(MON, 1), true), s(addDays(MON, 5), true)], ctx)).toEqual([]);
   });

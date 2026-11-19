@@ -52,10 +52,24 @@ Bento tiles:
 
 Summary numbers, splits/laps (swim: per-length/interval), HR zone distribution, planned-vs-done, RPE editor, commute toggle (rides), summary text.
 
+## As built (M4/M5, 2026-11-19)
+
+The pages follow `docs/mockups/app.html`. Decisions made while mocking and building, on top of the sections above:
+
+- **Compact layout** at ≤ 1440 px wide or ≤ 860 px tall (a 1080p laptop at 125 % scaling, or the 1100×700 minimum): readiness factors go to two columns with the value only (reason in a tooltip), session structure and activity summary line are hidden. Today fits on one screen at 1100×700 (checked).
+- **Factor marks**, no green/amber: outline ✓ fine · filled `!` watch · red ✕ warning · dashed circle no data. The hero sentence is built from the flagged factors ("HRV is under your normal range and yesterday was bigger than a usual day. Everything else looks fine.").
+- **Two sessions today:** the key (or first) session is the big one; others are a "Later:" line. Strength shows RPE, not a heart-rate zone. Targets turn into numbers once run threshold pace / swim CSS are set (e.g. "Threshold + 10–15 s/km" → "4:45–4:50 /km").
+- **Suggestions:** accept/dismiss in the readiness tile; once accepted it reads "Changed to X · Undo" and the session tile shows "was: …".
+- **First run:** paste key → test → 90-day sync with a progress bar, then Today.
+- **Week:** day footers with that day's readiness and load against planned; totals by sport against last week (tick); the week's `plan_changes`; a "Why this? / Why did this change?" popover per card; ⋮ menu with Swap/Move pickers, Change session (library), Skip/Put back, Make rest day. Menus in the left three columns open to the right. Future weeks are read-only previews until their Monday.
+- **Trends** scrolls (only Today must fit). One y-axis per chart, so every pair is two small charts in one tile; pace axes put faster at the top; the load ratio is its own strip under the load bars with the 0.8–1.3 band. Walking etc. shows as "Other" in grey when present. Running dynamics shows a placeholder linking to Hardware until the sensor is on; VO2 max appears only when the data has it. Empty series say "No data in this range".
+- **Races & Settings** is one scrolling page with a sub-nav. Debug views live under Developer and open in their own window.
+- **Charts** are small hand-written SVG components (`src/renderer/components/charts.tsx`), not a library: 4–12 points per series didn't justify uPlot.
+
 ## Visual system
 
 - **Base:** near-black background (~`#0B0D10`), tiles ~`#15181D`, borders ~`#22262D`, text ~`#E8EAED` / secondary ~`#9AA0A6`. Tile radius ~16 px, gap ~12 px.
-- **Type:** one grotesk sans bundled with the app (e.g. Inter) — must work offline. Tabular numerals for all metrics. Hero numbers large and light-weight like the poster.
+- **Type:** Inter Variable, bundled via `@fontsource-variable/inter` (works offline). Tabular numerals for all metrics. Hero numbers large and light-weight like the poster.
 - **Sport colours (the only hues in the UI):**
 
   | Sport | Token | Starting value |
@@ -66,7 +80,7 @@ Summary numbers, splits/laps (swim: per-length/interval), HR zone distribution, 
   | Strength | `--sport-strength` | violet `#A78BFA` |
   | Other / commute | `--sport-other` | grey `#8A9099` (commutes = bike colour at reduced opacity) |
 
-  The athlete suggested black for cycling; it disappears on a dark UI, hence orange. Easy to change — keep all colours as CSS variables.
+  The athlete suggested black for cycling; it disappears on a dark UI, hence orange. Easy to change: every colour lives in `src/renderer/styles/tokens.css`, and components use only those variables.
 - **Status (readiness, warnings) is NOT colour-coded with green/amber**, because those hues collide with run/bike. Use words + the 3-step meter + icons. Red (`#FF5A5F`) is reserved for genuine warnings only.
 - Check contrast (WCAG AA for text) and that sport colours are distinguishable for common colour-vision deficiencies; always pair colour with a sport icon/label.
 - Light theme: not in v1, but keep everything tokenised so it's a palette swap (the poster shows the light variant).

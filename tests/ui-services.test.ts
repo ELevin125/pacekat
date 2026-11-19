@@ -85,6 +85,9 @@ describe('summaries', () => {
     db.prepare(`UPDATE summaries SET text = 'cached' WHERE kind = 'activity'`).run();
     expect(activitySummary(db, d).text).toBe('cached');
     expect(activitySummary(db, { ...d, distanceM: 5200 }).text).not.toBe('cached');
+    // A wording change (new template version) also rewrites it.
+    db.prepare(`UPDATE summaries SET text = 'cached', facts_json = replace(facts_json, '"template":', '"template_old":')`).run();
+    expect(activitySummary(db, d).text).not.toBe('cached');
   });
 
   it('writes the daily brief from readiness and today’s plan', () => {

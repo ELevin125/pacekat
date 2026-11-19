@@ -24,12 +24,12 @@ Build in this order. Each milestone should end with something runnable and tests
 - Races (A/B/C), phases, week template, session library, weekly generation, adaptation rules, validators, `plan_changes` log.
 - **Exit:** scenario tests pass; a generated 4-week block reads like a reasonable plan.
 
-## M4 — UI: Today + Week
-- Decide React vs Svelte before starting.
+## M4 — UI: Today + Week  ✅ built (2026-11-19) — React 19; checked at 1920×1080 and 1100×700 on real data; athlete feedback pending
+- React 19 (decided).
 - Bento Today page, Week page with quick actions, activity drawer, nav rail, visual system tokens.
 - **Exit:** The athlete can use it daily (with template summaries).
 
-## M5 — Trends + Settings polish
+## M5 — Trends + Settings polish  ✅ built (2026-11-19) — Trends needs a training athlete's data to judge properly
 - Trends page, Races & Settings pages complete, sensor toggles with auto-suggest, backup export.
 
 ## M6 — Local AI
@@ -46,7 +46,7 @@ Build in this order. Each milestone should end with something runnable and tests
 - Afrikaans UI text.
 
 ## Open questions
-- [ ] React or Svelte (before M4).
+- [x] React or Svelte → React 19.
 - [x] Exact Personal API endpoints and range limits — confirmed from the spec (see `garmin-data.md`). Rate limits and the token response body are undocumented; the probe records what we see.
 - [ ] VO2 max: the activity summary schema has `vO2MaxValue`; the probe also checks FIT `maxMetData`. Confirm with the athlete's real data.
 - [ ] The athlete's max HR (measured or Garmin-detected) and swim CSS / run threshold pace for targets.

@@ -159,7 +159,7 @@ function SuggestionBox({ s, onMsg }: { s: SuggestionView; onMsg: (m: string, ok?
 
 function targetsFor(s: PlanSessionView, settings: SettingsView | undefined) {
   const t = { runThresholdSPerKm: settings?.runThresholdSPerKm, swimCssSPer100m: settings?.swimCssSPer100m };
-  const hr = s.targets.hr ?? INTENSITY_LABEL[s.intensity] ?? s.intensity;
+  const hr = s.sport === 'strength' ? null : (s.targets.hr ?? INTENSITY_LABEL[s.intensity] ?? s.intensity);
   const third = s.targets.pace ? { v: resolveTarget(s.targets.pace, t), k: 'pace target' } : s.targets.swim ? { v: resolveTarget(s.targets.swim, t), k: 'swim target' } : s.targets.rpe ? { v: s.targets.rpe, k: 'RPE' } : null;
   return { hr, third };
 }
@@ -198,10 +198,12 @@ function SessionTile({ week, today, accepted, settings }: { week: PlanWeekView |
           <span className="v">{main.durationMin} min</span>
           <span className="k">duration</span>
         </div>
-        <div>
-          <span className="v">{hr}</span>
-          <span className="k">heart rate</span>
-        </div>
+        {hr && (
+          <div>
+            <span className="v">{hr}</span>
+            <span className="k">heart rate</span>
+          </div>
+        )}
         {third && (
           <div>
             <span className="v">{third.v}</span>

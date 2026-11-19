@@ -446,7 +446,7 @@ export class PlanService {
     const fromDate = today > weekStart ? today : weekStart;
     if (fromDate > addDays(weekStart, 6)) return [];
     const active = this.weekSessions(weekStart).filter(ACTIVE);
-    const meta = this.db.prepare('SELECT mode FROM plan_weeks WHERE week_start = ?').get(weekStart) as { mode: WeekPlan['mode'] } | undefined;
+    const meta = this.db.prepare('SELECT mode, cap FROM plan_weeks WHERE week_start = ?').get(weekStart) as { mode: WeekPlan['mode']; cap: number | null } | undefined;
     return validateWeek(
       active.map((s) => ({ ...s, estLoad: s.date >= fromDate && s.status === 'planned' ? s.estLoad : 0 })),
       {
@@ -456,6 +456,7 @@ export class PlanService {
         rampRef: this.rampRef(weekStart),
         weekLoadSoFar: fromDate > weekStart ? (this.loadBetween(weekStart, addDays(fromDate, -1)) ?? 0) : 0,
         mode: meta?.mode ?? 'maintain',
+        planCap: meta?.cap ?? null,
       },
     );
   }

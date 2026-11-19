@@ -100,9 +100,10 @@ code { background: var(--tile-2); padding: 1px 5px; border-radius: 4px; font-siz
 .tl-label { margin-bottom: 8px; }
 .role { cursor: default; flex-direction: column; align-items: stretch; gap: 2px; }
 .role::after { display: none; }
-.role select { background: transparent; border: 0; color: var(--text); font: inherit; font-size: 12px; padding: 0; cursor: pointer; }
+.role { min-width: 0; }
+.role select { background: transparent; border: 0; color: var(--text); font: inherit; font-size: 12px; padding: 0; cursor: pointer; width: 100%; min-width: 0; text-overflow: ellipsis; }
 .role select option { background: var(--tile-2); color: var(--text); }
-.role .choices { display: flex; gap: 8px; font-size: 11px; color: var(--text-2); }
+.role .choices { display: flex; flex-direction: column; gap: 2px; font-size: 11px; color: var(--text-2); }
 .role .choices label { display: inline-flex; align-items: center; gap: 3px; }
 .add-slot { cursor: pointer; }
 .save-row { margin-top: 12px; align-items: center; }

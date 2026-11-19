@@ -107,7 +107,16 @@ export function WeekPage({ nav }: { nav: AppNav }) {
               ))}
               <div className="wcol-cards">
                 {list.map((s) => (
-                  <SessionCard key={s.id} s={s} w={w} library={library.data ?? []} activity={s.matchedActivityId ? actById.get(s.matchedActivityId) : undefined} onEdit={onEdit} onOpen={nav.openActivity} />
+                  <SessionCard
+                    key={s.id}
+                    s={s}
+                    w={w}
+                    library={library.data ?? []}
+                    activity={s.matchedActivityId ? actById.get(s.matchedActivityId) : undefined}
+                    onEdit={onEdit}
+                    onOpen={nav.openActivity}
+                    menuAlign={days.indexOf(d) < 3 ? 'left' : 'right'}
+                  />
                 ))}
               </div>
               <div className="dayfoot">
@@ -176,6 +185,7 @@ function SessionCard({
   activity,
   onEdit,
   onOpen,
+  menuAlign,
 }: {
   s: PlanSessionView;
   w: PlanWeekView;
@@ -183,6 +193,7 @@ function SessionCard({
   activity: ActivityItem | undefined;
   onEdit: (r: PlanEditResult) => void;
   onOpen: (id: number) => void;
+  menuAlign: 'left' | 'right';
 }) {
   if (s.sport === 'rest') {
     return (
@@ -191,13 +202,13 @@ function SessionCard({
           <Icon name="rest" className="sport-ico tiny" /> Rest
         </div>
         <div className="t">Rest day</div>
-        {!w.preview && <CardMenu s={s} w={w} library={library} onEdit={onEdit} />}
+        {!w.preview && <CardMenu s={s} w={w} library={library} onEdit={onEdit} align={menuAlign} />}
       </div>
     );
   }
   const commute = s.sessionKey === 'commute_ride';
   const st = stateLine(s, activity);
-  const target = s.targets.hr ?? s.targets.swim ?? s.targets.rpe ?? INTENSITY_LABEL[s.intensity];
+  const target = s.sport === 'strength' ? `RPE ${s.targets.rpe ?? '6–7'}` : (s.targets.hr ?? s.targets.swim ?? s.targets.rpe ?? INTENSITY_LABEL[s.intensity]);
   const changes = w.changes.filter((c) => c.sessionId === s.id);
   const why = [...s.notes, ...changes.map((c) => c.reason)].filter((x, i, arr) => arr.indexOf(x) === i);
   return (
@@ -242,14 +253,14 @@ function SessionCard({
           )}
         </Popover>
       )}
-      {!w.preview && <CardMenu s={s} w={w} library={library} onEdit={onEdit} />}
+      {!w.preview && <CardMenu s={s} w={w} library={library} onEdit={onEdit} align={menuAlign} />}
     </div>
   );
 }
 
 type Picker = null | 'swap' | 'move' | 'change';
 
-function CardMenu({ s, w, library, onEdit }: { s: PlanSessionView; w: PlanWeekView; library: LibraryItem[]; onEdit: (r: PlanEditResult) => void }) {
+function CardMenu({ s, w, library, onEdit, align }: { s: PlanSessionView; w: PlanWeekView; library: LibraryItem[]; onEdit: (r: PlanEditResult) => void; align: 'left' | 'right' }) {
   const [picker, setPicker] = useState<Picker>(null);
   const days = Array.from({ length: 7 }, (_, i) => addDays(w.weekStart, i));
   const others = w.sessions.filter((o) => o.id !== s.id && o.status !== 'moved' && o.status !== 'skipped');
@@ -262,6 +273,7 @@ function CardMenu({ s, w, library, onEdit }: { s: PlanSessionView; w: PlanWeekVi
   return (
     <Popover
       className="kebab-wrap"
+      align={align}
       trigger={(toggle) => (
         <button
           className="kebab"

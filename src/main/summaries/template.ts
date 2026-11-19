@@ -4,6 +4,9 @@
  * The M6 local LLM will take the same facts and fall back to these.
  */
 
+/** Bump when the wording below changes, so cached summaries are rewritten. */
+export const TEMPLATE_VERSION = 2;
+
 export type ZoneKey = 'z1' | 'z2' | 'z3' | 'z4' | 'z5';
 
 export interface ActivityFacts {
@@ -102,7 +105,9 @@ export function dailyText(f: DailyFacts): string {
   const key = f.today.find((s) => s.is_key);
   const main = key ?? f.today[0];
 
-  if (f.verdict === 'go') parts.push('You look recovered and good to go.');
+  const noData = !!f.why && /^Not enough data/.test(f.why);
+  if (f.verdict === 'easy' && noData) parts.push("There isn't enough data from last night, so keep today easy to be safe.");
+  else if (f.verdict === 'go') parts.push('You look recovered and good to go.');
   else if (f.verdict === 'easy') parts.push(`You're a little under-recovered${f.why ? `: ${lowerFirst(stripTakeEasy(f.why))}` : '.'}`);
   else if (f.verdict === 'rest') parts.push(`Your body is asking for rest${f.why ? `: ${lowerFirst(f.why)}` : '.'}`);
   else parts.push('No readiness data yet today; sync your watch for a verdict.');
