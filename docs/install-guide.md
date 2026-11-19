@@ -55,9 +55,9 @@ Pacekat gives training suggestions, not medical advice. If something hurts or fe
 
 ## For the developer: cutting a release
 
-1. Bump `version` in `package.json` (e.g. `0.2.0`) and commit.
-2. Tag and push: `git tag v0.2.0 && git push origin v0.2.0`.
-3. GitHub Actions (`.github/workflows/ci.yml`) runs the tests on Linux and Windows, builds `Pacekat-Setup-0.2.0.exe`, `pacekat_0.2.0_amd64.deb` and `Pacekat-0.2.0.AppImage`, and attaches all three to a GitHub Release for that tag.
+1. Bump `version` in `package.json` (e.g. `0.2.0`), commit and push.
+2. On GitHub: **Releases → Draft a new release**, type the tag `v0.2.0` (choose "Create new tag on publish", target `main`), write the notes, **Publish**. (Or from the terminal: `git tag v0.2.0 && git push origin v0.2.0`, and add notes afterwards.)
+3. GitHub Actions (`.github/workflows/ci.yml`) runs the tests on Linux and Windows, builds `Pacekat-Setup-0.2.0.exe`, `pacekat_0.2.0_amd64.deb` and `Pacekat-0.2.0.AppImage`, and attaches all three to that release a few minutes later. Your notes are left as written.
 4. Every push to `main` also builds them; download from the workflow run's **Artifacts** to test before tagging.
 
 Locally: `npm run dist:linux` builds the `.deb` and AppImage in `release/`. Install the `.deb` with `sudo apt install ./release/pacekat_0.2.0_amd64.deb`, or run the AppImage directly (`libfuse2` may be needed). The Windows installer is built in CI, since it needs Windows.

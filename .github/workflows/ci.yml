@@ -1,5 +1,5 @@
 # Tests on every push; Windows installer + Linux .deb/AppImage on every push to main and on version tags.
-# Tags like v0.1.0 also publish all three as a GitHub Release.
+# Tags like v0.1.0 also attach all three to a GitHub Release (created from the Releases page, or by pushing the tag).
 name: CI
 
 on:
@@ -88,4 +88,4 @@ jobs:
             dist/*.exe
             dist/*.deb
             dist/*.AppImage
-          generate_release_notes: true
+          # Only attach files. Notes are written in the GitHub UI (or added there later) and left untouched.
