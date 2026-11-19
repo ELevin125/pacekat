@@ -97,6 +97,7 @@ npm run dev          # electron-vite dev with HMR
 npm test             # vitest
 npm run typecheck    # main/preload/scripts/tests + renderer
 npm run build        # bundles into out/
+npm run dist:linux   # .deb + AppImage in release/ (the Windows installer comes from CI)
 npm start            # run the built app
 ```
 
@@ -132,8 +133,16 @@ No telemetry, no analytics, no update pings in v1.
 
 ## Packaging
 
-- electron-builder NSIS installer, per-user install (no admin rights needed).
-- `llama-server` binaries are downloaded from llama.cpp GitHub releases **in CI** (pinned version + checksum) and placed in `resources/llama/<platform>/` via `extraResources`. Windows uses the **Vulkan** build (works on NVIDIA and AMD iGPU; falls back to CPU).
-- The model is **not** in the installer; downloaded in-app (see `ai-summary.md`).
-- Code signing: not in v1 (SmartScreen warning is acceptable for a friend's machine; document how to click through).
-- Auto-update: not in v1. Ship new installers manually.
+Config: `electron-builder.yml`. CI: `.github/workflows/ci.yml`. Install steps for the athlete: `install-guide.md`.
+
+- **Windows:** electron-builder NSIS, one-click, per-user (no admin rights), Desktop + Start-menu shortcuts, opens after install, keeps the data folder on uninstall. Built in CI on `windows-latest` (`npm run dist:win`). Every push to `main` uploads the installers as artifacts (`Pacekat-Setup-windows`, `Pacekat-linux`); a `v*` tag publishes the `.exe`, `.deb` and AppImage as a GitHub Release.
+- **Linux:** a `.deb` (installs to `/opt/Pacekat`, menu entry + icon, depends on `libsecret` for key encryption) and an AppImage (runs anywhere; needs FUSE / `libfuse2`). Built locally with `npm run dist:linux` into `release/` (gitignored), and in CI next to the Windows installer.
+- **Native module:** better-sqlite3 13 ships N-API prebuilds for every platform, so there's no rebuild step (`npmRebuild: false`); `*.node` files are unpacked from the asar. Its C sources are excluded from the package.
+- **What ships:** `out/**`, `package.json`, `build/icon.png`, and the main process's runtime deps (`better-sqlite3`, `@garmin/fitsdk`, `fflate`). React and the font are bundled into the renderer by Vite, so they're devDependencies. Package ≈ 135 MB (mostly Electron); shipped deps have no known vulnerabilities (`npm audit --omit=dev`).
+- **Data folder:** `app.getPath('userData')` = `%APPDATA%\pacekat` on Windows, `~/.config/pacekat` on Linux.
+- **Icon:** `build/icon.svg` → `icon.png` / `icon.ico` (ImageMagick).
+- **Code signing:** not in v1. The SmartScreen click-through is in the install guide.
+- **Auto-update:** not in v1. Run a newer installer over the old one; data is kept.
+- **Local AI (M6, deferred):** would add `llama-server` binaries fetched in CI (pinned + checksum) via `extraResources`; the model would be an in-app download, never in the installer (see `ai-summary.md`).
+
+Verified 2026-11-19: the Linux AppImage starts from a fresh profile, applies migrations, loads SQLite from the unpacked module and shows first-run; the `.deb`'s metadata, files and desktop entry check out (not installed, since that needs sudo). The Windows installer has not been run yet: it needs the CI job (first push) and a Windows machine.

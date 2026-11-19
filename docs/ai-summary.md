@@ -1,5 +1,7 @@
 # AI Summary (optional, local, bundled)
 
+> **Status: deferred (2026-11-19).** The app ships with template summaries only (`src/main/summaries/`). See `roadmap.md` → M6 for why. This document stays as the design for when it's picked up; the facts → text contract below is what the templates already implement.
+
 ## What it does
 
 Writes short prose, like Strava's summaries:

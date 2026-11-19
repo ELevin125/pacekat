@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { clock, distance, hoursMinutes, longDate, pace, parsePace, relativeDay, resolveTarget, shortDate, weekRange } from '../src/shared/format';
-import { activityText, dailyText, zoneDescription, type ActivityFacts } from '../src/main/summaries/template';
+import { activityText, dailyText, recapText, zoneDescription, type ActivityFacts } from '../src/main/summaries/template';
 import { aggregateTrends, isEasyRun, paceAtHr, type TrendActivity, type TrendInput } from '../src/main/trends/aggregate';
 import { factorValue, phaseBars, pillState, readinessSentence, sportTotals, todaysSessions, weekProgress } from '../src/renderer/view';
 import type { PlanSessionView, ReadinessDay, ReadinessFactor, TimelineView } from '../src/shared/api';
@@ -72,6 +72,23 @@ describe('template summaries', () => {
     expect(activityText({ ...swim, comparisons: ['your fastest 1600 m swim in 8 weeks (previous best 2:01 /100 m)'], next: undefined })).toMatch(/Your fastest 1600 m swim/);
     expect(activityText({ kind: 'activity', sport: 'bike', title: 'Ride', duration: '40:00', distance_km: 12, is_commute: true, comparisons: [], load: { this_session: 'light' } })).not.toMatch(/extra/);
   });
+  it('varies phrasing by seed, deterministically', () => {
+    const texts = new Set(Array.from({ length: 30 }, (_, i) => activityText({ ...swim, seed: i })));
+    expect(texts.size).toBeGreaterThan(3);
+    expect(activityText({ ...swim, seed: 7 })).toBe(activityText({ ...swim, seed: 7 }));
+    for (const t of texts) expect(t).toMatch(/1 600 m in 31:12 at 1:57 \/100 m/);
+  });
+  it('uses a streak when there is no comparison', () => {
+    expect(activityText({ ...swim, planned: undefined, next: undefined, streak: 3 })).toMatch(/Your third swim this week\./);
+    expect(activityText({ ...swim, streak: 3, comparisons: ['your longest swim in 12 weeks'] })).toMatch(/Your longest swim in 12 weeks\./);
+  });
+  it('writes the Monday recap', () => {
+    expect(recapText({ sessions_done: 7, sessions_planned: 9, hours: '5 h 10', load_change_pct: 8, focus: 'a recovery week, about 30 % lighter' })).toBe(
+      'Last week: 7 of 9 sessions, 5 h 10 of training, 8 % more load than the week before. This week is a recovery week, about 30 % lighter.',
+    );
+    expect(recapText({ sessions_done: 3, sessions_planned: 0, hours: '2 h 00', load_change_pct: 2, focus: null })).toBe('Last week: 3 sessions, 2 h 00 of training.');
+  });
+
   it('describes zone mixes and effort', () => {
     expect(zoneDescription({ z2: 0.7, z3: 0.3 })).toEqual({ text: 'mostly in zone 2', effort: 'easy' });
     expect(zoneDescription({ z3: 0.35, z4: 0.4, z5: 0.25 })?.effort).toBe('hard');

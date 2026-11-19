@@ -5,7 +5,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import type { DB } from '../src/main/db';
 import { computeAcwr } from '../src/main/engine';
 import { getActivityDetail, timeInZones } from '../src/main/activities/detail';
-import { activitySummary, dailySummary, loadCategory } from '../src/main/summaries/service';
+import { activityFacts, activitySummary, comparisons, dailyFacts, dailySummary, loadCategory, weekRecap } from '../src/main/summaries/service';
 import { applySettings, nudges, setZones, settingsView } from '../src/main/settings';
 import { getTrends } from '../src/main/trends';
 import { PlanService } from '../src/main/plan/service';
@@ -80,7 +80,7 @@ describe('summaries', () => {
     const d = getActivityDetail(db, '/nonexistent', id)!;
     const first = activitySummary(db, d);
     expect(first.source).toBe('template');
-    expect(first.text).toMatch(/^Saturday parkrun done: 5\.0 km in 30:00 at 6:00 \/km\./);
+    expect(first.text).toMatch(/^Saturday parkrun( done| in the bag)?: 5\.0 km in 30:00 at 6:00 \/km\./);
     expect((db.prepare('SELECT COUNT(*) n FROM summaries').get() as { n: number }).n).toBe(1);
     db.prepare(`UPDATE summaries SET text = 'cached' WHERE kind = 'activity'`).run();
     expect(activitySummary(db, d).text).toBe('cached');
@@ -93,7 +93,7 @@ describe('summaries', () => {
   it('writes the daily brief from readiness and today’s plan', () => {
     db.prepare(`INSERT INTO readiness VALUES (?, 'go', ?, 'x')`).run(TODAY, JSON.stringify({ summary: 'Good to go.', factors: [], acwr: 1 }));
     db.prepare(`INSERT INTO planned_sessions (local_date, slot, sport, session_key, title, duration_min, intensity, is_key, status, source) VALUES (?, 0, 'run', 'parkrun_tempo', 'parkrun (tempo)', 40, 'tempo', 1, 'planned', 'engine')`).run(TODAY);
-    expect(dailySummary(db, TODAY).text).toBe('You look recovered and good to go. Today is parkrun (tempo) (40 min). Make the hard parts count.');
+    expect(dailySummary(db, TODAY).text).toMatch(/^(You look recovered and good to go|Recovery looks good today|All the signs say you're recovered)\. Today is parkrun \(tempo\) \(40 min\)\. (Warm up properly and m|M)ake the hard parts count\.$/);
   });
 
   it('grades session load against a typical training day', () => {
@@ -102,6 +102,70 @@ describe('summaries', () => {
     expect(loadCategory(100, 60)).toBe('hard');
     expect(loadCategory(150, 60)).toBe('very hard');
     expect(loadCategory(100, null)).toBe('hard');
+  });
+});
+
+describe('richer template facts', () => {
+  let db: DB;
+  beforeEach(() => {
+    db = openDbForTest();
+    seedZones(db);
+  });
+  const detail = (id: number) => getActivityDetail(db, '/nonexistent', id)!;
+
+  it('counts the streak within the Monday–Sunday week', () => {
+    addActivity(db, { sport: 'swim', local_date: '2026-11-09', start_utc: '2026-11-09T05:00:00.000Z' });
+    addActivity(db, { sport: 'swim', local_date: '2026-11-11', start_utc: '2026-11-11T05:00:00.000Z' });
+    addActivity(db, { sport: 'swim', local_date: '2026-11-08', start_utc: '2026-11-08T05:00:00.000Z' }); // previous week
+    const id = addActivity(db, { sport: 'swim', local_date: '2026-11-13', start_utc: '2026-11-13T05:00:00.000Z' });
+    expect(activityFacts(db, detail(id)).streak).toBe(3);
+  });
+
+  it('spots the fastest run at this distance in 8 weeks', () => {
+    addActivity(db, { local_date: '2026-10-20', avg_pace_s_per_km: 330 });
+    addActivity(db, { local_date: '2026-11-01', avg_pace_s_per_km: 320 });
+    const id = addActivity(db, { avg_pace_s_per_km: 300 });
+    expect(comparisons(db, detail(id))[0]).toBe('your fastest 5.0 km run in 8 weeks (previous best 5:20 /km)');
+  });
+
+  it('compares with the last time: pace, or heart rate at the same pace', () => {
+    addActivity(db, { local_date: '2026-09-30', avg_pace_s_per_km: 280 }); // faster, but long ago: no "fastest"
+    addActivity(db, { local_date: '2026-11-03', avg_pace_s_per_km: 372 });
+    const faster = addActivity(db, { avg_pace_s_per_km: 360 });
+    expect(comparisons(db, detail(faster))[0]).toBe('12 s/km faster than last time (3 Nov)');
+    const sameDb = openDbForTest();
+    const add = (o: Record<string, unknown>) => {
+      const row = { garmin_activity_id: String(Math.random()), name: 'Run', local_date: TODAY, start_utc: `${TODAY}T05:00:00.000Z`, sport: 'run', duration_s: 1800, distance_m: 5000, avg_hr: 140, avg_pace_s_per_km: 360, raw_json: '{}', updated_at: 'x', ...o };
+      const cols = Object.keys(row);
+      return Number(sameDb.prepare(`INSERT INTO activities (${cols.join(',')}) VALUES (${cols.map((c) => '@' + c).join(',')})`).run(row).lastInsertRowid);
+    };
+    add({ local_date: '2026-11-03', avg_pace_s_per_km: 361, avg_hr: 146 });
+    const id = add({ avg_pace_s_per_km: 360, avg_hr: 140 });
+    expect(comparisons(sameDb, getActivityDetail(sameDb, '/x', id)!)[0]).toBe('same pace as last time (3 Nov) with heart rate 6 bpm lower');
+  });
+
+  it('notices the longest ride in 12 weeks (commutes excluded)', () => {
+    for (const d of ['2026-10-10', '2026-10-20', '2026-11-01']) addActivity(db, { sport: 'bike', local_date: d, distance_m: 40_000, avg_pace_s_per_km: null });
+    addActivity(db, { sport: 'bike', local_date: '2026-11-05', distance_m: 90_000, is_commute: 1, avg_pace_s_per_km: null });
+    const id = addActivity(db, { sport: 'bike', distance_m: 60_000, avg_pace_s_per_km: null });
+    expect(comparisons(db, detail(id))).toContain('your longest ride in 12 weeks');
+  });
+
+  it('recaps last week on Mondays only', () => {
+    const plan = new PlanService(db);
+    void plan;
+    for (const [d, st] of [['2026-11-03', 'done'], ['2026-11-05', 'done'], ['2026-11-07', 'missed']] as const) {
+      db.prepare(`INSERT INTO planned_sessions (local_date, slot, sport, session_key, title, duration_min, intensity, is_key, status, source) VALUES (?, 0, 'run', 'run_easy', 'Easy run', 30, 'z2', 0, ?, 'engine')`).run(d, st);
+    }
+    addActivity(db, { local_date: '2026-11-03', duration_s: 3000 });
+    addActivity(db, { local_date: '2026-11-05', duration_s: 3000 });
+    const m = db.prepare(`INSERT INTO daily_metrics VALUES (?, ?, 0, 0, NULL, 'building', 'x')`);
+    m.run('2026-10-28', 100);
+    m.run('2026-11-04', 110);
+    db.prepare(`INSERT INTO plan_weeks VALUES ('2026-11-09', 'maintain', 'maintain', 1, 300, 200, '[]', NULL, 'x')`).run();
+    expect(weekRecap(db, '2026-11-09')).toEqual({ sessions_done: 2, sessions_planned: 3, hours: '1 h 40', load_change_pct: 10, focus: 'a recovery week, about 30 % lighter' });
+    expect(dailyFacts(db, '2026-11-09').last_week).toBeDefined();
+    expect(dailyFacts(db, '2026-11-10').last_week).toBeUndefined();
   });
 });
 

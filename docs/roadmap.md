@@ -32,10 +32,12 @@ Build in this order. Each milestone should end with something runnable and tests
 ## M5 — Trends + Settings polish  ✅ built (2026-11-19) — Trends needs a training athlete's data to judge properly
 - Trends page, Races & Settings pages complete, sensor toggles with auto-suggest, backup export.
 
-## M6 — Local AI
+## M6 — Local AI  ⏸ deferred (2026-11-19)
 - Choose model; CI fetches `llama-server`; in-app model download; summary generation with number guard; template fallback stays default when off.
+- **Why deferred:** the model only rewrites facts the engine already decided, and the templates already write the same summaries. A 2.5–5 GB download, 10–30 s of CPU per summary and a bundled binary aren't worth nicer wording before the athlete has used the app. Revisit if the template summaries feel flat to him. Runtime stays llama.cpp; the model would be an MIT/Apache 3–4B instruct model, chosen by testing current releases at that point.
+- **Instead (done 2026-11-19):** richer templates: deterministic phrasing variants, streaks, distance bests, comparison with the last time the same session was done, and a Monday recap of last week in the daily brief.
 
-## M7 — Packaging
+## M7 — Packaging  ✅ built (2026-11-19) — Linux package verified locally; the Windows installer needs its first CI run and a real install
 - electron-builder NSIS (per-user), GitHub Actions Windows build, install guide for the athlete (incl. SmartScreen click-through and creating the Garmin key).
 
 ## Later / maybe

@@ -1,8 +1,8 @@
 {
   "name": "pacekat",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "private": true,
-  "description": "Offline training readiness and adaptive plans from Garmin data.",
+  "description": "Daily training readiness and an adaptive week plan from your Garmin data.",
   "type": "module",
   "engines": {
     "node": ">=22"
@@ -13,28 +13,35 @@
     "dev": "electron-vite dev",
     "build": "electron-vite build",
     "start": "electron-vite preview",
-    "test": "vitest run"
+    "test": "vitest run",
+    "dist": "npm run build && electron-builder --publish never",
+    "dist:win": "npm run build && electron-builder --win --publish never",
+    "dist:linux": "npm run build && electron-builder --linux --publish never"
   },
   "devDependencies": {
+    "@fontsource-variable/inter": "^5.3.0",
     "@types/better-sqlite3": "^9.6.0",
     "@types/node": "^22.20.5",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.3.0",
     "electron": "^45.3.2",
+    "electron-builder": "^26.18.0",
     "electron-vite": "^6.0.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
     "tsx": "^4.23.15",
     "typescript": "^7.0.2",
     "vite": "^8.3.8",
     "vitest": "^5.1.0"
   },
   "dependencies": {
-    "@fontsource-variable/inter": "^5.3.0",
     "@garmin/fitsdk": "^21.221.0",
     "better-sqlite3": "^13.1.1",
-    "fflate": "^0.8.3",
-    "react": "^19.3.1",
-    "react-dom": "^19.3.1"
+    "fflate": "^0.8.3"
   },
-  "main": "./out/main/index.js"
+  "main": "./out/main/index.js",
+  "author": "Pacekat",
+  "desktopName": "pacekat.desktop",
+  "license": "UNLICENSED"
 }

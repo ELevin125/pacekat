@@ -49,7 +49,7 @@ The athlete opens the app once a day and sees: what he did, how recovered he is,
 - Race list with A/B/C priority; plan periodises toward the next A race; "base/maintain" mode when there is none.
 - Hardware toggles (chest strap, running dynamics, swim HR storage, bike power) that change which metrics are used/shown.
 - Trends over 4–12 weeks.
-- Optional bundled local LLM that writes a short Strava-style summary. App fully works without it.
+- Short Strava-style summaries written from templates (deterministic, offline). An optional bundled local LLM is designed (`docs/ai-summary.md`) but deferred.
 
 ## Explicitly out of scope (v1)
 
@@ -78,7 +78,10 @@ npm install
 npm run dev                              # run the app with hot reload
 npm test                                 # unit + sync tests
 GARMIN_API_KEY=GCDC_... npm run probe    # M0 data probe → fixtures/COVERAGE.md
+npm run dist:linux                       # .deb + AppImage in release/ (Windows installer: CI)
 ```
+
+Installing on Windows: `docs/install-guide.md`.
 
 More in `docs/architecture.md` → Development.
 

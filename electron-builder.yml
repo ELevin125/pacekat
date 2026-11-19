@@ -1,0 +1,56 @@
+# Packaging (roadmap M7). `npm run dist:win` in CI, `npm run dist:linux` locally.
+appId: com.pacekat.app
+productName: Pacekat
+copyright: Pacekat
+
+directories:
+  output: release
+  buildResources: build
+
+files:
+  - out/**
+  - package.json
+  - build/icon.png # window icon at runtime
+  - "!**/*.map"
+  # better-sqlite3 ships N-API prebuilds; its C sources and docs aren't needed at runtime.
+  - "!node_modules/better-sqlite3/{deps,src,docs,benchmark}/**"
+  - "!node_modules/@garmin/fitsdk/{test,docs}/**"
+
+# Native modules can't load from inside the asar archive.
+asarUnpack:
+  - "**/*.node"
+
+# N-API prebuilds work in Electron as-is (checked in M1): no electron-rebuild step.
+npmRebuild: false
+
+win:
+  target:
+    - target: nsis
+      arch: [x64]
+  icon: build/icon.ico
+
+nsis:
+  # "Install, paste a key, done": one click, per user, no admin rights.
+  oneClick: true
+  perMachine: false
+  allowElevation: false
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: Pacekat
+  runAfterFinish: true
+  # Keep the athlete's data (database, FIT files) if the app is uninstalled or reinstalled.
+  deleteAppDataOnUninstall: false
+  artifactName: Pacekat-Setup-${version}.${ext}
+
+linux:
+  target: [AppImage, deb]
+  category: Utility
+  icon: build/icon.png
+  executableName: pacekat
+  synopsis: Daily training readiness and an adaptive week plan from Garmin data
+  # Generic maintainer: the package is distributed privately, not to a Debian archive.
+  maintainer: Pacekat <pacekat@users.noreply.github.com>
+  artifactName: Pacekat-${version}.${ext}
+
+deb:
+  artifactName: pacekat_${version}_${arch}.${ext}

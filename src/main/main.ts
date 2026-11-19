@@ -37,6 +37,7 @@ function createWindow(): BrowserWindow {
     minHeight: 700,
     backgroundColor: '#0B0D10',
     title: 'Pacekat',
+    icon: join(__dirname, '../../build/icon.png'),
     show: false,
     autoHideMenuBar: true,
     webPreferences: {
@@ -97,6 +98,9 @@ if (!app.requestSingleInstanceLock()) {
       win.focus();
     }
   });
+
+  // Windows: group the taskbar entry and notifications under the installed app's id.
+  if (process.platform === 'win32') app.setAppUserModelId('com.pacekat.app');
 
   app.whenReady().then(() => {
     for (const p of [paths.fit, paths.models, paths.logs]) mkdirSync(p, { recursive: true });

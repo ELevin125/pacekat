@@ -12,3 +12,6 @@ fixtures/
 
 # llama-server binaries are fetched in CI
 resources/llama/
+
+# Packaged installers
+release/
